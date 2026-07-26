@@ -13,6 +13,7 @@ import {
   where,
   updateDoc,
   doc,
+  setDoc,
   Firestore,
 } from "firebase/firestore";
 import { useState, useEffect, useRef } from "react";
@@ -219,8 +220,60 @@ export default function ChatRoom({ params }: { params: any }) {
     
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-    }, 1000);
+    }, 1500); // 1.5 seconds timeout
   };
+
+  // Sync our typing status to Firestore
+  useEffect(() => {
+    if (!id || !user || !db) return;
+
+    const myTypingRef = doc(db as Firestore, `chats/${id}/typing`, user.uid);
+    setDoc(myTypingRef, {
+      isTyping: isTyping,
+      lastUpdate: Timestamp.now()
+    }).catch((err) => {
+      console.error("Error setting typing status:", err);
+    });
+  }, [isTyping, id, user]);
+
+  // Listen for partner's typing status
+  useEffect(() => {
+    if (!id || !partnerUid || !db) return;
+
+    const typingDocRef = doc(db as Firestore, `chats/${id}/typing`, partnerUid);
+    const unsub = onSnapshot(typingDocRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        const isCurrentlyTyping = data.isTyping;
+        const lastUpdate = data.lastUpdate;
+        if (isCurrentlyTyping && lastUpdate) {
+          const updateTime = lastUpdate.toMillis ? lastUpdate.toMillis() : (lastUpdate.seconds ? lastUpdate.seconds * 1000 : 0);
+          if (Date.now() - updateTime < 10000) { // 10 seconds validity
+            setPartnerIsTyping(true);
+            return;
+          }
+        }
+      }
+      setPartnerIsTyping(false);
+    }, (error) => {
+      console.error("Error listening to partner typing:", error);
+    });
+
+    return () => unsub();
+  }, [id, partnerUid]);
+
+  // Clean up typing status on unmount
+  useEffect(() => {
+    return () => {
+      if (id && user && db) {
+        const myTypingRef = doc(db as Firestore, `chats/${id}/typing`, user.uid);
+        setDoc(myTypingRef, {
+          isTyping: false,
+          lastUpdate: Timestamp.now()
+        }).catch(() => {});
+      }
+    };
+  }, [id, user]);
 
   // Listen for messages
   useEffect(() => {

@@ -88,15 +88,21 @@ function ExploreContent() {
         setFilteredUsers([]);
     }
 
-    // FOLLOWING
-    const followingRef = collection(db as Firestore, `users/${uid}/following`);
-    const followingSnap = await getDocs(followingRef);
-    setFollowingList(followingSnap.docs.map((d) => d.id));
+    // FOLLOWING from root follows
+    const followingQ = query(
+      collection(db as Firestore, "follows"),
+      where("follower", "==", uid)
+    );
+    const followingSnap = await getDocs(followingQ);
+    setFollowingList(followingSnap.docs.map((d) => d.data().followed));
 
-    // FOLLOWERS
-    const followersRef = collection(db as Firestore, `users/${uid}/followers`);
-    const followersSnap = await getDocs(followersRef);
-    setFollowersList(followersSnap.docs.map((d) => d.id));
+    // FOLLOWERS from root follows
+    const followersQ = query(
+      collection(db as Firestore, "follows"),
+      where("followed", "==", uid)
+    );
+    const followersSnap = await getDocs(followersQ);
+    setFollowersList(followersSnap.docs.map((d) => d.data().follower));
     
     setLoading(false);
   };
@@ -139,7 +145,8 @@ function ExploreContent() {
 
         snap.forEach((d) => {
             const data = d.data();
-            if (data.createdAt?.toMillis() > oneDayAgo.toMillis()) {
+            const createdAtMillis = data.createdAt?.toMillis ? data.createdAt.toMillis() : (data.createdAt?.seconds ? data.createdAt.seconds * 1000 : 0);
+            if (createdAtMillis > oneDayAgo.toMillis()) {
                 arr.push({ id: d.id, ...data });
                 if (data.hashtags && Array.isArray(data.hashtags)) {
                     data.hashtags.forEach((tag: string) => {
@@ -149,7 +156,19 @@ function ExploreContent() {
                 }
             }
         });
-        setPosts(arr);
+
+        // Filter by search keyword/tag if present
+        let filteredArr = arr;
+        if (search && search.trim()) {
+          const keyword = search.toLowerCase().trim().replace("#", "");
+          filteredArr = arr.filter(p => {
+             const textMatch = p.text?.toLowerCase().includes(keyword);
+             const hashtagMatch = p.hashtags?.some((t: string) => t.toLowerCase().includes(keyword));
+             return textMatch || hashtagMatch;
+          });
+        }
+
+        setPosts(filteredArr);
         setTrendingTags(
             Object.entries(tagCounts)
                 .map(([tag, count]) => ({ tag, count }))
@@ -158,9 +177,12 @@ function ExploreContent() {
         );
 
         // Also load following list to update UI state for PostCard
-        const followingRef = collection(db as Firestore, `users/${uid}/following`);
-        const followingSnap = await getDocs(followingRef);
-        setFollowingList(followingSnap.docs.map((d) => d.id));
+        const followingQ = query(
+          collection(db as Firestore, "follows"),
+          where("follower", "==", uid)
+        );
+        const followingSnap = await getDocs(followingQ);
+        setFollowingList(followingSnap.docs.map((d) => d.data().followed));
 
       } catch (error) {
           console.error("Error loading posts:", error);
@@ -223,9 +245,24 @@ function ExploreContent() {
 
 
   const follow = async (targetUid: string) => {
-    if (!uid || !db) return;
-    await setDoc(doc(db as Firestore, `users/${uid}/following/${targetUid}`), { ts: Date.now() });
-    await setDoc(doc(db as Firestore, `users/${targetUid}/followers/${uid}`), { ts: Date.now() });
+    if (!uid || !db || targetUid === uid) return;
+
+    // Check if already following to prevent duplicate
+    const qF = query(
+      collection(db as Firestore, "follows"),
+      where("follower", "==", uid),
+      where("followed", "==", targetUid)
+    );
+    const fSnap = await getDocs(qF);
+    if (!fSnap.empty) {
+      setFollowingList(prev => [...prev, targetUid]);
+      return;
+    }
+
+    await addDoc(collection(db as Firestore, "follows"), {
+      follower: uid,
+      followed: targetUid,
+    });
     await notifyFollow(targetUid);
     
     // Update local state immediately
@@ -234,8 +271,15 @@ function ExploreContent() {
 
   const unfollow = async (targetUid: string) => {
     if (!uid || !db) return;
-    await deleteDoc(doc(db as Firestore, `users/${uid}/following/${targetUid}`));
-    await deleteDoc(doc(db as Firestore, `users/${targetUid}/followers/${uid}`));
+    const qF = query(
+      collection(db as Firestore, "follows"),
+      where("follower", "==", uid),
+      where("followed", "==", targetUid)
+    );
+    const sF = await getDocs(qF);
+    if (!sF.empty) {
+      await deleteDoc(doc(db as Firestore, "follows", sF.docs[0].id));
+    }
     
     // Update local state immediately
     setFollowingList(prev => prev.filter(id => id !== targetUid));
