@@ -353,7 +353,6 @@ function StatCard({
   delay: string;
 }) {
   return (
-    /* eslint-disable-next-line react/no-danger */
     <div
       className={`glass glass-hover rounded-3xl p-8 shadow-2xl border-2 border-(--gold-primary)/25 group cursor-default relative overflow-hidden hover-card ${delayClassMap[delay] ?? ""}`}
     >
@@ -381,7 +380,6 @@ function StatCard({
 
         {/* Progress Bar */}
         <div className="mt-4 progress-bar">
-          {/* eslint-disable-next-line react/no-danger */}
           <div 
             className={`progress-bar-fill ${progressWidthClass(Math.min(100, count * 10))}`}
           ></div>

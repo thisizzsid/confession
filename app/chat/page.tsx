@@ -10,243 +10,305 @@ import {
   Firestore,
   query,
   where,
-  Timestamp
+  Timestamp,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 
-const maskEmail = (email: string) => {
+/* ----------------------------- Types ----------------------------- */
+
+interface ChatUser {
+  id: string;
+  username?: string;
+  email?: string;
+  lastSeen?: Timestamp | Date | string | null;
+}
+
+/* --------------------------- Utilities ---------------------------- */
+
+const maskEmail = (email?: string) => {
   if (!email) return "";
   const [name, domain] = email.split("@");
   if (!name || !domain) return email;
-  const maskedName = name.length > 2 ? name.substring(0, 2) + "..." : name;
+  const maskedName = name.length > 2 ? `${name.substring(0, 2)}...` : name;
   return `${maskedName}@${domain}`;
 };
 
-const isUserOnline = (lastSeen: any) => {
+const isUserOnline = (lastSeen?: Timestamp | Date | string | null) => {
   if (!lastSeen) return false;
-  const date = lastSeen.toDate ? lastSeen.toDate() : new Date(lastSeen);
-  const now = new Date();
-  const diff = (now.getTime() - date.getTime()) / 1000 / 60; // minutes
-  return diff < 5;
+  const date =
+    lastSeen instanceof Timestamp ? lastSeen.toDate() : new Date(lastSeen);
+  if (Number.isNaN(date.getTime())) return false;
+  const diffMinutes = (Date.now() - date.getTime()) / 1000 / 60;
+  return diffMinutes < 5;
 };
+
+/* ------------------------------ Page ------------------------------ */
 
 export default function ChatListPage() {
   const { user } = useAuth();
-  const [usersList, setUsersList] = useState<any[]>([]);
+  const [usersList, setUsersList] = useState<ChatUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!user || !db) return;
     setLoading(true);
+    setError(null);
 
     try {
-      // 1. Get who YOU follow (using root 'follows' collection)
-      const fQ = query(
+      const followsQuery = query(
         collection(db as Firestore, "follows"),
         where("follower", "==", user.uid)
       );
-      const fSnap = await getDocs(fQ);
-      const followedIds = fSnap.docs.map((d) => d.data().followed);
+      const followsSnap = await getDocs(followsQuery);
+      const followedIds = followsSnap.docs.map((d) => d.data().followed as string);
 
-      // 2. Load ONLY followed users
-      if (followedIds.length > 0) {
-        const userPromises = followedIds.map(uid => getDoc(doc(db as Firestore, "users", uid)));
-        const userSnaps = await Promise.all(userPromises);
-        const users = userSnaps
-          .filter(snap => snap.exists())
-          .map(snap => ({ id: snap.id, ...snap.data() }));
-        setUsersList(users);
-      } else {
+      if (followedIds.length === 0) {
         setUsersList([]);
+        return;
       }
-      
-      setLoading(false);
-    } catch (error) {
-      console.error("Error loading users:", error);
+
+      const userDocs = await Promise.all(
+        followedIds.map((uid) => getDoc(doc(db as Firestore, "users", uid)))
+      );
+
+      const users: ChatUser[] = userDocs
+        .filter((snap) => snap.exists())
+        .map((snap) => ({ id: snap.id, ...(snap.data() as Omit<ChatUser, "id">) }))
+        .sort((a, b) => {
+          const aOnline = isUserOnline(a.lastSeen);
+          const bOnline = isUserOnline(b.lastSeen);
+          if (aOnline !== bOnline) return aOnline ? -1 : 1;
+          return (a.username ?? "").localeCompare(b.username ?? "");
+        });
+
+      setUsersList(users);
+    } catch (err) {
+      console.error("Error loading users:", err);
+      setError("We couldn't load your chats. Please try again.");
+    } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     load();
-  }, [user]);
+  }, [load]);
+
+  /* --------------------------- Not logged in --------------------------- */
 
   if (!user) {
     return (
-      <div className="h-screen bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] text-(--gold-primary) flex items-center justify-center">
-        <div className="glass rounded-3xl p-12 animate-bounceIn">
-          <p className="text-2xl font-bold">Login Required</p>
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] px-6 text-(--gold-primary)">
+        <div className="glass animate-bounceIn rounded-3xl p-10 text-center sm:p-12">
+          <p className="text-xl font-bold sm:text-2xl">Login Required</p>
+          <p className="mt-2 text-sm text-zinc-500">
+            Please sign in to view your conversations.
+          </p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] text-(--gold-primary) px-4 md:px-8 py-24 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-40 left-20 w-96 h-96 bg-(--gold-primary)/10 rounded-full blur-3xl animate-float"></div>
-      <div className="absolute bottom-40 right-20 w-96 h-96 bg-[#00F0FF]/5 rounded-full blur-3xl animate-float animation-delay-2000"></div>
+  /* -------------------------------- Page -------------------------------- */
 
-      <div className="text-center mb-16 animate-fadeIn relative z-10">
-        <div className="inline-block mb-4">
-          <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-(--gold-primary) to-(--gold-light) flex items-center justify-center shadow-2xl shadow-(--gold-primary)/50 animate-pulse-glow mx-auto">
-            <span className="text-4xl">💬</span>
-          </div>
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] px-4 py-16 text-(--gold-primary) sm:px-6 md:px-8 md:py-24">
+      {/* Background accents */}
+      <div
+        aria-hidden="true"
+        className="animate-float pointer-events-none absolute left-10 top-32 h-72 w-72 rounded-full bg-(--gold-primary)/10 blur-3xl sm:left-20 sm:h-96 sm:w-96"
+      />
+      <div
+        aria-hidden="true"
+        className="animate-float pointer-events-none absolute bottom-32 right-10 h-72 w-72 rounded-full bg-[#00F0FF]/5 blur-3xl [animation-delay:2s] sm:right-20 sm:h-96 sm:w-96"
+      />
+
+      {/* Header */}
+      <header className="relative z-10 mb-12 animate-fadeIn text-center sm:mb-16">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-(--gold-primary) to-(--gold-light) shadow-2xl shadow-(--gold-primary)/50 animate-pulse-glow sm:h-20 sm:w-20">
+          <span className="text-3xl sm:text-4xl">💬</span>
         </div>
 
-        <h1 className="text-7xl font-black tracking-tighter bg-linear-to-r from-(--gold-primary) via-(--gold-light) to-(--gold-primary) bg-clip-text text-transparent drop-shadow-lg mb-4 font-[Orbitron] bg-size-[200%_auto] animate-textShine">
+        <h1 className="bg-linear-to-r from-(--gold-primary) via-(--gold-light) to-(--gold-primary) bg-size-[200%_auto] bg-clip-text font-[Orbitron] text-4xl font-black tracking-tighter text-transparent drop-shadow-lg animate-textShine sm:text-5xl md:text-7xl">
           Private Chats
         </h1>
 
-        <p className="mt-4 text-lg text-zinc-500 font-light tracking-tight max-w-2xl mx-auto">
+        <p className="mx-auto mt-4 max-w-2xl px-2 text-base font-light tracking-tight text-zinc-500 sm:text-lg">
           Secure end-to-end encrypted conversations.
         </p>
 
-        {/* Stats */}
-        <div className="mt-8 flex items-center justify-center gap-8">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-6 sm:mt-8 sm:gap-8">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-(--gold-primary) animate-pulse"></div>
-            <span className="text-sm text-zinc-600 font-medium">
-              {usersList.length} Connections
+            <span className="h-3 w-3 animate-pulse rounded-full bg-(--gold-primary)" />
+            <span className="text-sm font-medium text-zinc-600">
+              {usersList.length} Connection{usersList.length === 1 ? "" : "s"}
             </span>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="grid gap-6 max-w-5xl mx-auto relative z-10">
-        {/* Emesis AI Bot Card */}
+      {/* Error banner */}
+      {error && (
+        <div className="relative z-10 mx-auto mb-6 flex max-w-5xl flex-col items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-center sm:flex-row sm:justify-between sm:text-left">
+          <p className="text-sm text-red-300">{error}</p>
+          <button
+            onClick={load}
+            className="shrink-0 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/30"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      <ul className="relative z-10 mx-auto grid max-w-5xl list-none gap-4 sm:gap-6">
+        {/* AI companion card */}
         {!loading && (
-          <div className="glass glass-hover rounded-2xl p-6 md:p-8 shadow-2xl border border-(--gold-primary)/25 group relative overflow-hidden animate-fadeIn">
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-purple-500"></div>
-            <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6 relative z-10">
-              <div className="flex items-center gap-5 w-full md:flex-1">
+          <li className="glass glass-hover group relative overflow-hidden rounded-2xl border border-(--gold-primary)/25 p-5 shadow-2xl animate-fadeIn sm:p-6 md:p-8">
+            <div className="absolute left-0 top-0 h-1 w-full bg-linear-to-r from-blue-500 to-purple-500" />
+            <div className="relative z-10 flex flex-col items-center justify-between gap-5 md:flex-row md:gap-6">
+              <div className="flex w-full items-center gap-4 sm:gap-5 md:flex-1">
                 <div className="relative shrink-0">
-                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-xl font-black text-2xl text-white group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-purple-500 text-xl font-black text-white shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 sm:h-16 sm:w-16 sm:text-2xl">
                     AI
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 md:w-5 h-4 md:h-5 rounded-full border-2 border-black bg-green-500 animate-pulse"></div>
+                  <span className="absolute -bottom-1 -right-1 h-4 w-4 animate-pulse rounded-full border-2 border-black bg-green-500 sm:h-5 sm:w-5" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-xl md:text-2xl text-(--gold-primary) mb-1 group-hover:text-(--gold-light) transition-colors truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="mb-1 truncate text-lg font-bold text-(--gold-primary) transition-colors group-hover:text-(--gold-light) sm:text-xl md:text-2xl">
                     Emesis AI
                   </p>
-                  <p className="text-xs md:text-sm text-zinc-600 flex items-center gap-2 mb-2">
+                  <p className="mb-2 flex items-center gap-2 text-xs text-zinc-600 sm:text-sm">
                     <span className="truncate">Always here for you</span>
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-blue-400 bg-(--dark-base)/40 px-3 py-2 rounded-lg border border-blue-500/30 w-fit">
-                      <span>24/7 Companion • Smart Reply</span>
+                  <div className="flex w-fit items-center gap-2 rounded-lg border border-blue-500/30 bg-(--dark-base)/40 px-3 py-2 text-xs text-blue-400">
+                    <span>24/7 Companion • Smart Reply</span>
                   </div>
                 </div>
               </div>
-              <div className="w-full md:w-auto shrink-0">
+              <div className="w-full shrink-0 md:w-auto">
                 <Link
                   href={`/chat/ai_${user.uid}`}
-                  className="modern-btn w-full md:w-auto px-8 py-4 bg-linear-to-r from-blue-500 to-purple-500 text-white rounded-2xl font-bold shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-purple-500/50 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3"
+                  className="modern-btn flex w-full items-center justify-center gap-3 rounded-2xl bg-linear-to-r from-blue-500 to-purple-500 px-8 py-4 font-bold text-white shadow-xl shadow-blue-500/30 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/50 active:scale-95 md:w-auto"
                 >
                   Chat AI
                 </Link>
               </div>
             </div>
-          </div>
+          </li>
         )}
 
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="glass rounded-2xl p-6 md:p-8 shadow-xl border border-(--gold-primary)/20 animate-pulse">
-              <div className="flex items-center gap-5 md:gap-6">
-                <div className="skeleton w-14 h-14 md:w-16 md:h-16 rounded-2xl"></div>
-                <div className="flex-1 space-y-2 md:space-y-3">
-                  <div className="skeleton h-5 md:h-6 w-36 md:w-40 rounded"></div>
-                  <div className="skeleton h-3.5 md:h-4 w-52 md:w-60 rounded"></div>
+            <li
+              key={`skeleton-${i}`}
+              className="glass animate-pulse rounded-2xl border border-(--gold-primary)/20 p-5 shadow-xl sm:p-6 md:p-8"
+            >
+              <div className="flex items-center gap-4 sm:gap-5 md:gap-6">
+                <div className="skeleton h-14 w-14 rounded-2xl sm:h-16 sm:w-16" />
+                <div className="flex-1 space-y-2 sm:space-y-3">
+                  <div className="skeleton h-5 w-36 rounded sm:h-6 sm:w-40" />
+                  <div className="skeleton h-3.5 w-52 rounded sm:h-4 sm:w-60" />
                 </div>
-                <div className="skeleton h-9 md:h-10 w-24 md:w-28 rounded-xl"></div>
+                <div className="skeleton h-9 w-24 rounded-xl sm:h-10 sm:w-28" />
               </div>
-            </div>
+            </li>
           ))
-        ) : usersList.length === 0 ? (
-          <div className="glass rounded-3xl p-16 text-center shadow-2xl border border-(--gold-primary)/30 animate-fadeIn">
-            <div className="text-6xl mb-4">👻</div>
-            <p className="text-2xl font-bold text-(--gold-primary) mb-2">It's quiet here...</p>
-            <p className="text-zinc-600 mb-8 max-w-md mx-auto">
-              You haven't followed anyone yet. Explore the feed or confessions to find people to chat with!
+        ) : usersList.length === 0 && !error ? (
+          <li className="glass animate-fadeIn rounded-3xl border border-(--gold-primary)/30 p-10 text-center shadow-2xl sm:p-16">
+            <div className="mb-4 text-5xl sm:text-6xl">👻</div>
+            <p className="mb-2 text-xl font-bold text-(--gold-primary) sm:text-2xl">
+              It&apos;s quiet here...
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link 
+            <p className="mx-auto mb-8 max-w-md text-sm text-zinc-600 sm:text-base">
+              You haven&apos;t followed anyone yet. Explore the feed or confessions to
+              find people to chat with!
+            </p>
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Link
                 href="/feed"
-                className="px-8 py-4 bg-linear-to-r from-(--gold-primary) to-(--gold-light) text-black font-bold rounded-xl shadow-lg hover:scale-105 transition-transform"
+                className="w-full rounded-xl bg-linear-to-r from-(--gold-primary) to-(--gold-light) px-8 py-4 text-center font-bold text-black shadow-lg transition-transform hover:scale-105 sm:w-auto"
               >
                 Explore Feed
               </Link>
-              <Link 
+              <Link
                 href="/confession"
-                className="px-8 py-4 bg-zinc-800 text-white font-bold rounded-xl shadow-lg hover:bg-zinc-700 hover:scale-105 transition-all"
+                className="w-full rounded-xl bg-zinc-800 px-8 py-4 text-center font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-zinc-700 sm:w-auto"
               >
                 Read Confessions
               </Link>
             </div>
-          </div>
+          </li>
         ) : (
           usersList.map((u) => {
             const chatId = [user.uid, u.id].sort().join("_");
             const online = isUserOnline(u.lastSeen);
 
             return (
-              <div
+              <li
                 key={u.id}
-                className="glass glass-hover rounded-2xl p-6 md:p-8 shadow-2xl border border-(--gold-primary)/25 group relative overflow-hidden animate-fadeIn"
+                className="glass glass-hover group relative overflow-hidden rounded-2xl border border-(--gold-primary)/25 p-5 shadow-2xl animate-fadeIn sm:p-6 md:p-8"
               >
-                <div className={`absolute top-0 left-0 w-full h-1 bg-linear-to-r from-green-500 to-emerald-500`}></div>
+                <div className="absolute left-0 top-0 h-1 w-full bg-linear-to-r from-green-500 to-emerald-500" />
 
-                <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6 relative z-10">
-                  <div className="flex items-center gap-5 w-full md:flex-1">
+                <div className="relative z-10 flex flex-col items-center justify-between gap-5 md:flex-row md:gap-6">
+                  <div className="flex w-full items-center gap-4 sm:gap-5 md:flex-1">
                     <div className="relative shrink-0">
-                      <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-xl font-black text-2xl text-black group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-green-500 to-emerald-500 text-xl font-black text-black shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 sm:h-16 sm:w-16 sm:text-2xl">
                         {u.username?.[0]?.toUpperCase() || "U"}
                       </div>
                       {online && (
-                        <div className={`absolute -bottom-1 -right-1 w-4 md:w-5 h-4 md:h-5 rounded-full border-2 border-black bg-green-500 animate-pulse`}></div>
+                        <span className="absolute -bottom-1 -right-1 h-4 w-4 animate-pulse rounded-full border-2 border-black bg-green-500 sm:h-5 sm:w-5" />
                       )}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-xl md:text-2xl text-(--gold-primary) mb-1 group-hover:text-(--gold-light) transition-colors truncate">
+                    <div className="min-w-0 flex-1">
+                      <p className="mb-1 truncate text-lg font-bold text-(--gold-primary) transition-colors group-hover:text-(--gold-light) sm:text-xl md:text-2xl">
                         {u.username || "No Name"}
                       </p>
-                      <p className="text-xs md:text-sm text-zinc-600 flex items-center gap-2 mb-2">
+                      <p className="mb-2 flex flex-wrap items-center gap-2 text-xs text-zinc-600 sm:text-sm">
                         <span className="truncate">{maskEmail(u.email)}</span>
-                        <span className="text-xs bg-(--gold-primary)/10 text-(--gold-primary) px-2 py-0.5 rounded-full">Connected</span>
+                        <span className="rounded-full bg-(--gold-primary)/10 px-2 py-0.5 text-xs text-(--gold-primary)">
+                          {online ? "Online" : "Connected"}
+                        </span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="w-full md:w-auto shrink-0 flex gap-2">
+                  <div className="w-full shrink-0 md:w-auto">
                     <Link
                       href={`/chat/${chatId}`}
-                      className="group relative w-full md:w-auto px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-(--gold-primary)/30 transition-all duration-300 flex items-center justify-center gap-3 backdrop-blur-md overflow-hidden"
+                      className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-white/10 bg-white/5 px-6 py-3 backdrop-blur-md transition-all duration-300 hover:border-(--gold-primary)/30 hover:bg-white/10 md:w-auto"
                     >
-                        <div className="absolute inset-0 bg-linear-to-r from-(--gold-primary)/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <span className="text-zinc-300 font-medium group-hover:text-(--gold-primary) transition-colors relative z-10">Open Chat</span>
-                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-(--gold-primary) group-hover:text-black transition-all duration-300 relative z-10">
-                          <svg className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                          </svg>
-                        </div>
+                      <span className="absolute inset-0 bg-linear-to-r from-(--gold-primary)/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                      <span className="relative z-10 font-medium text-zinc-300 transition-colors group-hover:text-(--gold-primary)">
+                        Open Chat
+                      </span>
+                      <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/5 transition-all duration-300 group-hover:bg-(--gold-primary) group-hover:text-black">
+                        <svg
+                          className="h-4 w-4 -rotate-45 transition-transform duration-300 group-hover:rotate-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"
+                          />
+                        </svg>
+                      </span>
                     </Link>
                   </div>
                 </div>
-              </div>
+              </li>
             );
           })
         )}
-      </div>
-
-      <style jsx>{`
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-      `}</style>
+      </ul>
     </div>
   );
 }
