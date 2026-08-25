@@ -9,6 +9,9 @@ service cloud.firestore {
     function isOwner(userId) {
       return isAuth() && request.auth.uid == userId;
     }
+    function isNotBlocked() {
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBlocked != true;
+    }
 
     // User Profiles
     match /users/{userId} {
@@ -38,25 +41,25 @@ service cloud.firestore {
     // Posts
     match /posts/{postId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isNotBlocked() && request.resource.data.uid == request.auth.uid;
       // Only the post author can edit/delete their post
       // BUT allow anyone to update 'likes' and 'commentCount'
       allow update: if isAuth() && (
         resource.data.uid == request.auth.uid || 
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'commentCount'])
       );
-      allow delete: if isAuth() && resource.data.uid == request.auth.uid;
+      allow delete: if isNotBlocked() && resource.data.uid == request.auth.uid;
 
       // Comments Subcollection
       match /comments/{commentId} {
         allow read: if true;
-        allow create: if isAuth();
+        allow create: if isNotBlocked() && request.resource.data.uid == request.auth.uid;
         // Owner can edit text; others can only vote
         allow update: if isAuth() && (
           resource.data.uid == request.auth.uid ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvotes', 'downvotes'])
         );
-        allow delete: if isAuth() && resource.data.uid == request.auth.uid;
+        allow delete: if isNotBlocked() && resource.data.uid == request.auth.uid;
 
         // Reports Subcollection
         match /reports/{reportId} {
@@ -69,23 +72,23 @@ service cloud.firestore {
     // Follows (Root Collection)
     match /follows/{docId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isNotBlocked() && request.resource.data.follower == request.auth.uid;
       allow update, delete: if isAuth() && resource.data.follower == request.auth.uid;
     }
 
     // Profile Views (for Dashboard stats)
     match /profileViews/{viewId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isNotBlocked() && request.resource.data.viewerUid == request.auth.uid;
     }
 
     // Private Chats
     match /chats/{chatId} {
       // Allow if user is part of the chat ID (format: uid1_uid2)
-      allow read, write: if isAuth() && chatId.contains(request.auth.uid);
+      allow read, write: if isNotBlocked() && chatId.split('_').hasAny([request.auth.uid]);
       
       match /messages/{messageId} {
-        allow read, write: if isAuth() && chatId.contains(request.auth.uid);
+        allow read, write: if isNotBlocked() && chatId.split('_').hasAny([request.auth.uid]);
       }
     }
 

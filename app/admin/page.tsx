@@ -1,14 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, Bell, Send, Lock, Image as ImageIcon, Link as LinkIcon, LogOut, Users, CheckCircle, AlertCircle } from "lucide-react";
+import { Shield, Bell, Send, Lock, Image as ImageIcon, Link as LinkIcon, LogOut, Users, Search, Ban, ShieldCheck } from "lucide-react";
 import Toast from "../components/Toast";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [isConfigured, setIsConfigured] = useState(true);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+  const [userSearch, setUserSearch] = useState("");
+  const [managedUsers, setManagedUsers] = useState<any[]>([]);
+  const [userAction, setUserAction] = useState<string | null>(null);
 
   const [campaign, setCampaign] = useState({
     title: "",
@@ -20,9 +25,25 @@ export default function AdminPage() {
   useEffect(() => {
     fetch("/api/admin/auth", { credentials: "include" })
       .then((response) => response.json())
-      .then((data) => setIsAuthenticated(data.authenticated === true))
-      .catch(() => setIsAuthenticated(false));
+      .then((data) => {
+        setIsAuthenticated(data.authenticated === true);
+        setIsConfigured(data.configured !== false);
+      })
+      .catch(() => setIsAuthenticated(false))
+      .finally(() => setCheckingSession(false));
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated || userSearch.trim().length < 2) {
+      setManagedUsers([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      const response = await fetch(`/api/admin/users?q=${encodeURIComponent(userSearch.trim())}`, { credentials: "include" });
+      if (response.ok) setManagedUsers((await response.json()).users || []);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, userSearch]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +112,30 @@ export default function AdminPage() {
     setCampaign({ title: "", body: "", image: "", link: "" });
   };
 
+  const updateUserStatus = async (uid: string, action: "block" | "unblock") => {
+    setUserAction(uid);
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ uid, action }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to update user");
+      setManagedUsers((users) => users.map((user) => user.uid === uid ? { ...user, isBlocked: action === "block" } : user));
+      setToast({ message: action === "block" ? "User blocked and notified." : data.emailSent ? "User unblocked. Admin email sent." : `User unblocked. ${data.warning || ""}`, type: "success" });
+    } catch (error: any) {
+      setToast({ message: error.message, type: "error" });
+    } finally {
+      setUserAction(null);
+    }
+  };
+
   if (!isAuthenticated) {
+    if (checkingSession) {
+      return <div className="flex min-h-dvh items-center justify-center bg-(--background) text-sm text-zinc-500">Checking admin session...</div>;
+    }
     return (
       <div className="min-h-dvh flex items-center justify-center bg-(--background) p-4">
         <div className="glass-card max-w-md w-full rounded-3xl border border-(--glass-border) bg-(--glass-bg) p-6 sm:p-8">
@@ -100,10 +144,10 @@ export default function AdminPage() {
               <Shield className="w-8 h-8 text-(--gold-primary)" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
-            <p className="text-zinc-400">Enter secure password to continue</p>
+            <p className="text-zinc-400">{isConfigured ? "Enter secure password to continue" : "Admin access is not configured on this deployment."}</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          {isConfigured && <form onSubmit={handleLogin} className="space-y-6">
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
               <input
@@ -122,7 +166,7 @@ export default function AdminPage() {
             >
               Access Dashboard
             </button>
-          </form>
+          </form>}
         </div>
       </div>
     );
@@ -146,6 +190,31 @@ export default function AdminPage() {
             <span className="hidden sm:inline">Sign out</span>
           </button>
         </header>
+
+        <section className="glass-card rounded-3xl border border-(--glass-border) bg-(--glass-bg) p-6 md:p-8">
+          <div className="mb-5 flex items-center gap-3 border-b border-white/10 pb-5">
+            <ShieldCheck className="h-5 w-5 text-(--gold-primary)" />
+            <div>
+              <h2 className="font-semibold text-white">User access</h2>
+              <p className="text-sm text-zinc-500">Block or unblock accounts by username.</p>
+            </div>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+            <input value={userSearch} onChange={(event) => setUserSearch(event.target.value)} placeholder="Search username" className="w-full rounded-xl border border-white/10 bg-black/30 py-3 pl-11 pr-4 text-sm text-white outline-none transition focus:border-(--gold-primary)/50" />
+          </div>
+          {managedUsers.length > 0 && <div className="mt-4 space-y-2">
+            {managedUsers.map((managedUser) => (
+              <div key={managedUser.uid} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                <div className="min-w-0"><p className="truncate font-semibold text-white">{managedUser.username}</p><p className="truncate text-xs text-zinc-500">{managedUser.email || managedUser.uid}</p></div>
+                <button type="button" disabled={userAction === managedUser.uid} onClick={() => updateUserStatus(managedUser.uid, managedUser.isBlocked ? "unblock" : "block")} className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition disabled:opacity-50 ${managedUser.isBlocked ? "border border-(--gold-primary)/30 text-(--gold-primary) hover:bg-(--gold-primary)/10" : "bg-red-500/15 text-red-200 hover:bg-red-500/25"}`}>
+                  {managedUser.isBlocked ? <ShieldCheck className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
+                  {managedUser.isBlocked ? "Unblock" : "Block"}
+                </button>
+              </div>
+            ))}
+          </div>}
+        </section>
 
         <div className="glass-card rounded-3xl border border-(--glass-border) bg-(--glass-bg) p-6 md:p-8">
           <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-5">

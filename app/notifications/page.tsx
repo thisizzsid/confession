@@ -19,11 +19,13 @@ import {
 } from "firebase/firestore";
 import Link from "next/link";
 import { useNotifications } from "../components/NotificationSetup";
+import { Bell, CheckCheck, ChevronRight, Megaphone, UserPlus, Heart, MessageCircle, Palette, AtSign, Repeat2 } from "lucide-react";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
   const ctx = useNotifications() as any;
   const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (Array.isArray(ctx.items)) setItems(ctx.items);
@@ -31,12 +33,17 @@ export default function NotificationsPage() {
 
   const load = async () => {
     if (!user || !db) return;
-    const q = query(
-      collection(db as Firestore, `users/${user.uid}/notifications`),
-      orderBy("createdAt", "desc")
-    );
-    const snap = await getDocs(q);
-    setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    setLoading(true);
+    try {
+      const q = query(
+        collection(db as Firestore, `users/${user.uid}/notifications`),
+        orderBy("createdAt", "desc")
+      );
+      const snap = await getDocs(q);
+      setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const markRead = async (id: string) => {
@@ -94,13 +101,60 @@ export default function NotificationsPage() {
     load();
   }, [user]);
 
-  if (!user) return <div className="p-6">Login Required</div>;
+  const formatTimestamp = (value: any) => {
+    try {
+      const date = value?.toDate ? value.toDate() : new Date(value);
+      return Number.isNaN(date.getTime()) ? "Just now" : date.toLocaleString();
+    } catch {
+      return "Just now";
+    }
+  };
+
+  const iconFor = (type?: string) => {
+    if (type === "like") return <Heart className="h-4 w-4" />;
+    if (type === "comment" || type === "reply") return <MessageCircle className="h-4 w-4" />;
+    if (type === "follow") return <UserPlus className="h-4 w-4" />;
+    if (type === "mention") return <AtSign className="h-4 w-4" />;
+    if (type === "theme") return <Palette className="h-4 w-4" />;
+    if (type === "campaign" || type === "system") return <Megaphone className="h-4 w-4" />;
+    return <Repeat2 className="h-4 w-4" />;
+  };
+
+  if (!user) return <div className="flex min-h-screen items-center justify-center text-(--gold-primary)">Login Required</div>;
 
   return (
-    <div className="p-6 space-y-6 text-yellow-300">
-      <h1 className="text-3xl font-bold">Notifications</h1>
+    <div className="min-h-screen bg-(--background) px-4 py-8 text-white sm:px-6 md:px-10">
+      <div className="mx-auto max-w-3xl">
+        <header className="mb-8 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-(--gold-primary)/20 bg-(--gold-primary)/10 text-(--gold-primary)">
+              <Bell className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white sm:text-3xl">Notifications</h1>
+              <p className="text-sm text-zinc-500">Your latest activity and updates</p>
+            </div>
+          </div>
+          {items.some((item) => !item.read) && ctx.markAllRead && (
+            <button type="button" onClick={() => ctx.markAllRead()} className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-zinc-400 transition hover:border-(--gold-primary)/30 hover:text-(--gold-primary)">
+              <CheckCheck className="h-4 w-4" />
+              <span className="hidden sm:inline">Mark all read</span>
+            </button>
+          )}
+        </header>
 
-      {items.length === 0 && <p>No notifications</p>}
+        {loading ? (
+          <div className="space-y-3" aria-busy="true">
+            {[1, 2, 3].map((key) => <div key={key} className="h-24 animate-pulse rounded-2xl border border-white/10 bg-white/5" />)}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="rounded-3xl border border-white/10 bg-white/3 p-12 text-center">
+            <Bell className="mx-auto h-8 w-8 text-zinc-600" />
+            <p className="mt-4 font-semibold text-zinc-300">You&apos;re all caught up</p>
+            <p className="mt-1 text-sm text-zinc-500">New activity will appear here.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
 
       {items.map((n) => {
         let label = "";
@@ -128,18 +182,22 @@ export default function NotificationsPage() {
               n.read ? "opacity-50" : "opacity-100"
             }`}
           >
-            <p>
-              {icon} <b>{n.fromName}</b> {label}
-            </p>
-            <p className="text-xs opacity-70">
-              {n.createdAt?.toDate().toLocaleString()}
-            </p>
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-(--gold-primary)/10 text-(--gold-primary)">{iconFor(n.type)}</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm leading-relaxed text-zinc-200">
+                  <b className="font-semibold text-white">{n.fromName || "Confession"}</b>{label ? ` ${label}` : ""}
+                </p>
+                <p className="mt-1 text-xs text-zinc-500">{formatTimestamp(n.createdAt)}</p>
+              </div>
+              {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-(--gold-primary)" aria-label="Unread" />}
+            </div>
 
             {/* Follow Back Button */}
             {n.type === "follow" && (
               <button
                 onClick={() => followBack(n.fromUid)}
-                className="bg-yellow-400 text-black px-3 py-1 rounded"
+                className="mt-2 inline-flex items-center gap-1 rounded-lg bg-(--gold-primary) px-3 py-1.5 text-xs font-semibold text-black"
               >
                 Follow Back
               </button>
@@ -148,7 +206,7 @@ export default function NotificationsPage() {
             {!n.read && (
               <button
                 onClick={() => markRead(n.id)}
-                className="bg-yellow-500 text-black px-2 py-1 rounded text-xs"
+                className="mt-2 inline-flex items-center gap-1 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:border-(--gold-primary)/30 hover:text-(--gold-primary)"
               >
                 Mark Read
               </button>
@@ -156,6 +214,9 @@ export default function NotificationsPage() {
           </div>
         );
       })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

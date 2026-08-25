@@ -33,6 +33,7 @@ export default function Navbar() {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCollabToast, setShowCollabToast] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [totalPostsCount, setTotalPostsCount] = useState(0);
   const [nearbyPostsCount, setNearbyPostsCount] = useState<number | null>(null);
   const sidebarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -104,8 +105,15 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    await logout();
-    router.push("/login");
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+      router.replace("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      setLoggingOut(false);
+    }
   };
 
   const handleNavClick = () => {
@@ -303,6 +311,7 @@ export default function Navbar() {
             {/* Logout */}
             <button
               onClick={handleLogout}
+              disabled={loggingOut}
               className="logout-btn relative w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl transition-all duration-200 active:scale-95 text-zinc-400 hover:text-[#ff0033] hover:bg-[#ff0033]/[0.08] group/logout"
               type="button"
               title="Logout"

@@ -274,7 +274,7 @@ export default function ChatRoom({ params }: { params: any }) {
     );
 
   return (
-    <div data-theme={theme} className="relative flex min-h-dvh flex-col overflow-hidden bg-(--background) text-white">
+    <div data-theme={theme} className="relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-(--background) text-white">
       {/* Background Elements */}
       <div className="pointer-events-none absolute -right-48 top-20 h-96 w-96 rounded-full bg-(--gold-primary)/5 blur-3xl"></div>
       <div className="pointer-events-none absolute bottom-20 -left-48 h-96 w-96 rounded-full bg-white/2 blur-3xl"></div>
@@ -446,7 +446,7 @@ export default function ChatRoom({ params }: { params: any }) {
           </div>
 
           {/* Input Area */}
-          <div className="z-20 shrink-0 border-t border-white/10 bg-(--background)/90 p-3 backdrop-blur-xl sm:p-4">
+          <div className="z-20 shrink-0 border-t border-white/10 bg-(--background)/90 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-xl sm:p-4">
              <form 
                onSubmit={(e) => { e.preventDefault(); send(); }}
                className="flex items-end gap-2 max-w-4xl mx-auto"

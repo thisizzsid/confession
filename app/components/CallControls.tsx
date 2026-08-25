@@ -70,6 +70,34 @@ async function optimizeVideoSender(peer: RTCPeerConnection) {
   }
 }
 
+async function enterCallView() {
+  try {
+    if (document.fullscreenEnabled && !document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch {
+    // Fullscreen is optional and may be blocked by the browser.
+  }
+
+  try {
+    const orientation = screen.orientation as ScreenOrientation & {
+      lock?: (orientation: "portrait-primary" | "portrait-secondary") => Promise<void>;
+    };
+    await orientation.lock?.("portrait-primary");
+  } catch {
+    // iOS Safari and some desktop browsers do not expose orientation locking.
+  }
+}
+
+async function exitCallView() {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+  } catch {}
+  try {
+    screen.orientation.unlock();
+  } catch {}
+}
+
 export default function CallControls({
   chatId,
   localUid,
@@ -126,6 +154,7 @@ export default function CallControls({
 
   const stopMedia = () => {
     stopRingtone();
+    void exitCallView();
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
     peerRef.current?.close();
     localStreamRef.current = null;
@@ -176,6 +205,7 @@ export default function CallControls({
     if (!db || !remoteUid || callState !== "idle") return;
     setError("");
     try {
+      await enterCallView();
       const stream = await requestMedia(type);
       localStreamRef.current = stream;
       const callRef = await addDoc(collection(db as Firestore, "calls"), {
@@ -208,6 +238,7 @@ export default function CallControls({
     stopRingtone();
     setError("");
     try {
+      await enterCallView();
       const type = call.type as CallType;
       const stream = await requestMedia(type);
       localStreamRef.current = stream;
@@ -326,18 +357,18 @@ export default function CallControls({
       )}
 
       {mounted && callState !== "idle" && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
-          <div className="relative h-full w-full overflow-hidden bg-black sm:h-auto sm:max-h-[90dvh] sm:max-w-lg sm:rounded-3xl sm:border sm:border-white/10 sm:bg-(--dark-card) sm:p-4 sm:shadow-2xl">
-            <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between bg-linear-to-b from-black/70 to-transparent p-5 pb-12 sm:relative sm:bg-transparent sm:p-2 sm:pb-4">
+        <div className="fixed inset-0 z-50 h-dvh min-h-svh w-screen overflow-hidden bg-black/90 backdrop-blur-md">
+          <div className="relative h-full min-h-0 w-full overflow-hidden bg-black sm:mx-auto sm:mt-[5vh] sm:h-[90dvh] sm:max-h-[90dvh] sm:max-w-lg sm:rounded-3xl sm:border sm:border-white/10 sm:bg-(--dark-card) sm:p-4 sm:shadow-2xl">
+            <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between bg-linear-to-b from-black/70 to-transparent p-5 pb-12 pt-[calc(1.25rem+env(safe-area-inset-top))] sm:relative sm:bg-transparent sm:p-2 sm:pb-4 sm:pt-2">
               <div>
                 <h3 className="text-lg font-bold text-white sm:text-xl">{remoteName}</h3>
               </div>
               <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-300">{callType}</span>
             </div>
-            <div className="relative h-full min-h-dvh overflow-hidden bg-black sm:aspect-video sm:h-auto sm:min-h-0 sm:rounded-2xl">
+            <div className="relative h-full min-h-0 overflow-hidden bg-black sm:aspect-video sm:h-auto sm:min-h-0 sm:rounded-2xl">
               {callType === "video" && <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-cover" />}
               {callType === "audio" && <audio ref={remoteAudioRef} autoPlay />}
-              {callType === "audio" && <div className="flex h-full min-h-dvh flex-col items-center justify-center gap-5 bg-(--dark-card) text-(--gold-primary) sm:min-h-0"><div className="flex h-28 w-28 items-center justify-center rounded-full border border-(--gold-primary)/30 bg-(--gold-primary)/10 text-5xl font-semibold">{remoteName.charAt(0).toUpperCase()}</div><span className="text-sm text-zinc-400">{callState === "calling" ? "Waiting for answer..." : "Audio connected"}</span></div>}
+              {callType === "audio" && <div className="flex h-full flex-col items-center justify-center gap-5 bg-(--dark-card) text-(--gold-primary)"><div className="flex h-28 w-28 items-center justify-center rounded-full border border-(--gold-primary)/30 bg-(--gold-primary)/10 text-5xl font-semibold">{remoteName.charAt(0).toUpperCase()}</div><span className="text-sm text-zinc-400">{callState === "calling" ? "Waiting for answer..." : "Audio connected"}</span></div>}
               {callType === "video" && <video ref={localVideoRef} autoPlay muted playsInline className="absolute right-4 top-20 h-32 w-24 scale-x-[-1] rounded-2xl border border-white/30 bg-black object-cover shadow-2xl sm:bottom-4 sm:right-4 sm:top-auto sm:h-32 sm:w-44" />}
             </div>
             {error && <p className="absolute bottom-28 left-5 right-5 z-10 rounded-xl bg-red-950/80 p-3 text-center text-sm text-red-200 sm:relative sm:bottom-auto sm:left-auto sm:right-auto sm:mt-3">{error}</p>}

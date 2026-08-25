@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   const session = request.headers.get("cookie")?.match(new RegExp(`${adminCookieName}=([^;]+)`))?.[1];
-  return NextResponse.json({ authenticated: isAdminSessionValid(session) });
+  return NextResponse.json({ authenticated: isAdminSessionValid(session), configured: Boolean(process.env.ADMIN_PASSWORD) });
 }
 
 export async function DELETE() {
