@@ -63,10 +63,10 @@ export default function UpcomingPage() {
           </button>
 
           <h1 className="text-4xl md:text-5xl font-black mb-4 bg-linear-to-r from-(--gold-primary) to-(--gold-light) bg-clip-text text-transparent">
-            🚀 EMESIS Roadmap
+            🚀 Confession Roadmap
           </h1>
           <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-            Discover what's coming to EMESIS. We're constantly innovating to bring you the best social experience.
+            Discover what's coming to Confession by SA Studios. We're constantly innovating to bring you the best social experience — crafted in USA.
           </p>
         </div>
       </div>

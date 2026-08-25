@@ -48,9 +48,10 @@ export default function PrivacyPage() {
             <TiltCard className="glass border border-(--gold-primary)/30 rounded-2xl p-6 md:p-8 bg-white/4 backdrop-blur-xl">
               <h2 className="text-2xl font-bold text-(--gold-primary) mb-4 font-mono">1.0 // Data_Transmission</h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                EMESIS operates on a strict <span className="text-white font-mono">need-to-know</span> basis. 
+                Confession operates on a strict <span className="text-white font-mono">need-to-know</span> basis. 
                 Your identity is hashed and salted unless you explicitly choose to broadcast it.
                 We do not sell, trade, or leak your personal variables to third-party endpoints.
+                Operated by SA Studios · Crafted in USA.
               </p>
               <div className="bg-black/40 p-4 rounded-lg font-mono text-xs text-(--gold-light)">
                 if (user.isAnonymous) {'{'}

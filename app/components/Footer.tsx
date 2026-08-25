@@ -5,13 +5,13 @@ export default function Footer() {
     <footer className="w-full glass border-t border-(--gold-primary)/10 sticky bottom-0 z-40 backdrop-blur-2xl">
       <div className="md:hidden h-10 px-3 flex items-center justify-center">
         <Link href="/feed" className="text-transparent bg-linear-to-r from-(--gold-primary) to-(--gold-light) bg-clip-text font-extrabold tracking-wide text-xs">
-          EMESIS
+          Confession
         </Link>
       </div>
 
       <div className="hidden md:flex max-w-6xl mx-auto items-center justify-between text-zinc-400 text-xs font-medium gap-4 py-2 px-6">
-        <p className="text-transparent bg-linear-to-r from-(--gold-primary) to-(--gold-light) bg-clip-text font-bold tracking-wide text-xs">
-          EMESIS © {new Date().getFullYear()}
+        <p className="text-transparent bg-linear-to-r from-(--gold-primary) to-(--gold-light) bg-clip-text font-bold tracking-wide text-xs whitespace-nowrap">
+          Confession © {new Date().getFullYear()} · Owned by SA Studios · Crafted in USA 🇺🇸
         </p>
 
         <div className="flex gap-6 flex-wrap justify-center">

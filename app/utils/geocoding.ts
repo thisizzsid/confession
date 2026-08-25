@@ -18,7 +18,7 @@ export async function getPlaceName(lat: number, lng: number): Promise<string | n
       {
         headers: {
           // It's polite to identify the app
-          'User-Agent': 'EmesisApp/1.0',
+          'User-Agent': 'ConfessionApp/1.0 (SA Studios, USA)',
           'Accept-Language': 'en-US,en;q=0.9'
         }
       }

@@ -20,7 +20,7 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('📬 Background message received:', payload);
 
-  const notificationTitle = payload.notification?.title || 'EMESIS';
+  const notificationTitle = payload.notification?.title || 'Confession';
   const notificationOptions = {
     body: payload.notification?.body || 'New update',
     icon: '/logoemesis.png',

@@ -48,7 +48,7 @@ export default function TermsPage() {
             <TiltCard className="glass border border-(--gold-primary)/30 rounded-2xl p-6 md:p-8 bg-white/4 backdrop-blur-xl">
               <h2 className="text-2xl font-bold text-(--gold-primary) mb-4 font-mono">1.0 // Initialization</h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                By accessing <span className="text-white font-mono">EMESIS</span>, you agree to bind your session to these protocols. 
+                By accessing <span className="text-white font-mono">Confession</span> (a service of SA Studios, USA), you agree to bind your session to these protocols. 
                 Failure to comply will result in an immediate <span className="text-red-400 font-mono">SIGKILL</span> of your account privileges.
               </p>
             </TiltCard>
@@ -77,17 +77,17 @@ export default function TermsPage() {
             <TiltCard className="glass border border-(--gold-primary)/30 rounded-2xl p-6 md:p-8 bg-white/4 backdrop-blur-xl">
               <h2 className="text-2xl font-bold text-(--gold-primary) mb-4 font-mono">3.0 // Exception_Handling</h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                EMESIS is provided "as is". We are not responsible for any data loss, downtime, or emotional overflow caused by user-generated content.
+                Confession is provided "as is" by SA Studios, USA. We are not responsible for any data loss, downtime, or emotional overflow caused by user-generated content.
                 While we implement robust garbage collection for toxic content, some edge cases may persist.
               </p>
               <div className="mt-4 p-4 bg-black/40 rounded border border-(--gold-primary)/10 text-xs font-mono text-zinc-500">
                 try {'{'}
                 <br />
-                &nbsp;&nbsp;use(EMESIS);
+                &nbsp;&nbsp;use(Confession);
                 <br />
                 {'}'} catch (liability) {'{'}
                 <br />
-                &nbsp;&nbsp;void(0); // We take no responsibility
+                &nbsp;&nbsp;void(0); // SA Studios takes no responsibility
                 <br />
                 {'}'}
               </div>

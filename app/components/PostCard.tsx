@@ -217,7 +217,7 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
     titleGradient.addColorStop(0, goldPrimary);
     titleGradient.addColorStop(1, goldLight);
     ctx.fillStyle = titleGradient;
-    ctx.fillText("EMESIS", size.w * 0.1, size.h * 0.18);
+    ctx.fillText("CONFESSION", size.w * 0.1, size.h * 0.18);
     ctx.font = `normal ${Math.floor(size.w * 0.05)}px Inter, -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = goldLight;
     const maxTextWidth = size.w * 0.8;
@@ -225,12 +225,12 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
     const endY = wrapText(ctx, post.text, size.w * 0.1, startY, maxTextWidth, Math.floor(size.w * 0.07));
     ctx.font = `600 ${Math.floor(size.w * 0.04)}px Inter, -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = `rgba(${goldPrimaryRgb},0.9)`;
-    ctx.fillText("Emesis — Confess your Thought", size.w * 0.1, Math.min(size.h * 0.9, endY + size.w * 0.2));
+    ctx.fillText("Confession · SA Studios (USA)", size.w * 0.1, Math.min(size.h * 0.9, endY + size.w * 0.2));
     return await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png", 0.95));
   };
 
   const nativeShare = async (blob: Blob, text: string) => {
-    const file = new File([blob], "emesis-confession.png", { type: "image/png" });
+    const file = new File([blob], "confession-share.png", { type: "image/png" });
     if (typeof navigator !== "undefined" && "share" in navigator) {
       const canFiles = (navigator as any).canShare ? (navigator as any).canShare({ files: [file] }) : true;
       if (canFiles) {
@@ -259,7 +259,7 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "emesis-confession.png";
+    a.download = "confession-share.png";
     document.body.appendChild(a);
     a.click();
     a.remove();

@@ -183,14 +183,14 @@ export default function Navbar() {
             <div className="absolute inset-0 bg-linear-to-r from-(--gold-primary) to-(--gold-light) opacity-30 blur-xl group-hover:opacity-60 transition-opacity duration-500"></div>
             <Image
               src="/logoemesis.png"
-              alt="Emesis Logo"
+              alt="Confession Logo"
               fill
               className="object-contain drop-shadow-[0_0_15px_rgba(var(--gold-primary-rgb),0.8)] relative z-10"
               sizes="40px"
             />
           </div>
           <span className="inline bg-linear-to-r from-(--gold-primary) via-(--gold-light) to-(--gold-primary) bg-clip-text text-transparent font-black tracking-tighter">
-            EMESIS
+            Confession
           </span>
           <div className="absolute -bottom-1 left-0 w-0 h-0.75 bg-linear-to-r from-(--gold-primary) to-(--gold-light) group-hover:w-full transition-all duration-500"></div>
         </button>

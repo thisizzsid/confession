@@ -212,7 +212,7 @@ export default function DashboardPage() {
         </h1>
         
         <p className="mt-4 text-lg text-zinc-500 font-light tracking-tight max-w-2xl mx-auto">
-          Real-time insights into your EMESIS journey. Track your impact, connections, and growth.
+          Real-time insights into your Confession journey. Track your impact, connections, and growth.
         </p>
 
         {/* Activity Ring */}

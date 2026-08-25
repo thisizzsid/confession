@@ -222,7 +222,7 @@ function LoginContent() {
               <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--dark-card) to-black border border-(--gold-primary)/30 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
                 <Image src="/logoemesis.png" alt="Logo" width={28} height={28} className="object-contain" />
               </div>
-              <span className="text-2xl font-black tracking-tighter text-white font-[Orbitron]">EMESIS</span>
+              <span className="text-2xl font-black tracking-tighter text-white font-[Orbitron]">Confession</span>
             </Link>
 
             <div className="mt-20 space-y-8">
@@ -282,7 +282,7 @@ function LoginContent() {
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
             <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-(--dark-card) to-black border border-(--gold-primary)/30 flex items-center justify-center shadow-xl">
-              <Image src="/logoemesis.png" alt="Logo" width={32} height={32} className="object-contain" />
+              <Image src="/logoemesis.png" alt="Confession Logo" width={32} height={32} className="object-contain" />
             </div>
           </div>
 

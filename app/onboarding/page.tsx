@@ -39,11 +39,11 @@ export default function OnboardingPage() {
             <span className="text-3xl">🇮🇳</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-black text-transparent bg-linear-to-r from-(--gold-primary) to-(--gold-light) bg-clip-text mb-3">
-            Welcome to EMESIS
+            Welcome to Confession
           </h2>
           <p className="text-zinc-400 text-sm md:text-base leading-relaxed max-w-lg mx-auto mb-4">
             A <strong className="text-(--gold-primary)">100% FREE</strong> platform for authentic expression and connection.
-            Made with ❤️ in India by a team dedicated to creating safe spaces for everyone.
+            Owned by SA Studios · Crafted with care in the USA 🇺🇸
           </p>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-(--gold-primary)/10 border border-(--gold-primary)/30">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>

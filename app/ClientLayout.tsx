@@ -46,9 +46,9 @@ export default function ClientLayout({
           className={`fixed inset-0 z-100 flex flex-col items-center justify-center bg-(--dark-base) text-(--text-main) transition-opacity duration-500 ${isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
             <div className="text-center px-4">
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-(--gold-primary) animate-fadeIn">Welcome to EMESIS</h1>
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-(--gold-primary) animate-fadeIn">Welcome to Confession</h1>
               <p className="text-lg md:text-xl text-(--text-main) opacity-80 animate-slideInUp [animation-delay:300ms]">
-                A confession place for everyone
+                A safe space for everyone — Owned by SA Studios, Crafted in USA 🇺🇸
               </p>
 
               {/* Secured By Badge */}

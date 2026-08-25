@@ -32,7 +32,7 @@ export default function LoadingOverlay({ isLoading }: LoadingOverlayProps) {
         <div className="w-20 h-20 relative animate-pulse">
           <Image
             src="/logoemesis.png"
-            alt="Loading..."
+            alt="Confession Loading..."
             fill
             className="object-contain drop-shadow-[0_0_15px_var(--gold-primary)]"
           />

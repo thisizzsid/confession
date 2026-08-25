@@ -30,10 +30,10 @@ export default function AboutPage() {
 
           <Reveal className="opacity-0">
             <h1 className="text-4xl md:text-6xl font-black mb-6 bg-linear-to-r from-(--gold-primary) via-white to-(--gold-light) bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(245,194,107,0.3)]">
-              About Emesis
+              About Confession
             </h1>
             <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-              The next generation of social connection.
+              The next generation of social connection — Owned by SA Studios, Crafted in USA 🇺🇸
             </p>
           </Reveal>
         </div>
@@ -50,9 +50,10 @@ export default function AboutPage() {
                 <div>
                   <h2 className="text-2xl font-bold text-(--gold-primary) mb-3">Our Mission</h2>
                   <p className="text-zinc-400 leading-relaxed">
-                    EMESIS is designed to redefine social connection. We are changing the way humans connect,
+                    Confession is designed to redefine social connection. We are changing the way humans connect,
                     moving away from superficial interactions to foster deep, authentic relationships.
                     Our platform is built for safety, inclusivity, and meaningful conversations.
+                    Owned by SA Studios · Crafted in USA.
                   </p>
                 </div>
               </div>
@@ -81,8 +82,8 @@ export default function AboutPage() {
                     <p className="text-(--gold-primary) text-sm mb-4">Lead Architect & CEO</p>
                     <p className="text-zinc-400 leading-relaxed mb-4">
                       Sid is a full-stack visionary with a passion for digital transformation.
-                      Combining years of development experience into a single vision, he built EMESIS
-                      to solve the problems of modern social connectivity.
+                      Combining years of development experience into a single vision, he built Confession
+                      to solve the problems of modern social connectivity — now proudly owned by SA Studios.
                     </p>
                     <div className="space-y-2 text-sm text-zinc-400">
                       <p><span className="text-(--gold-primary) font-semibold">Focus:</span> Social Innovation, UX/UI, Scalable Architecture</p>

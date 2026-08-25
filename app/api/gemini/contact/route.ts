@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     await transporter.sendMail({
       from: email,
       to: process.env.MAIL_TO,
-      subject: "New EMESIS Contact Message",
+      subject: "New Confession Contact Message (SA Studios)",
       text: message,
     });
 

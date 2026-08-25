@@ -177,7 +177,7 @@ export default function ChatListPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="mb-1 truncate text-lg font-bold text-(--gold-primary) transition-colors group-hover:text-(--gold-light) sm:text-xl md:text-2xl">
-                    Emesis AI
+                    Confession AI
                   </p>
                   <p className="mb-2 flex items-center gap-2 text-xs text-zinc-600 sm:text-sm">
                     <span className="truncate">Always here for you</span>

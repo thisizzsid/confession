@@ -12,7 +12,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "EMESIS",
+  title: "Confession",
   description: "Free Your Mind",
   icons: {
     icon: "/favicon.ico",

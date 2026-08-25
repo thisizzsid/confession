@@ -40,8 +40,8 @@ export default function OnboardingTour() {
 
   const steps = [
     {
-      title: "Welcome to EMESIS",
-      description: "Your safe space for authentic, anonymous expression. Let's show you around quickly.",
+      title: "Welcome to Confession",
+      description: "Your safe space for authentic, anonymous expression. Owned by SA Studios, crafted in USA. Let's show you around quickly.",
       icon: <div className="text-4xl">👋</div>,
       color: "from-blue-500 to-cyan-500"
     },
@@ -65,13 +65,13 @@ export default function OnboardingTour() {
     },
     {
       title: "AI Companion",
-      description: "Feeling lonely? Chat with Emesis AI anytime for support or just a fun conversation.",
+      description: "Feeling lonely? Chat with Confession AI anytime for support or just a fun conversation.",
       icon: <Bot className="w-12 h-12 text-white" />,
       color: "from-indigo-500 to-blue-500"
     },
     {
       title: "You're All Set!",
-      description: "Enjoy your journey on Emesis. Remember to be kind and supportive.",
+      description: "Enjoy your journey on Confession by SA Studios. Remember to be kind and supportive — crafted in USA 🇺🇸.",
       icon: <CheckCircle className="w-12 h-12 text-white" />,
       color: "from-(--gold-primary) to-(--gold-light)"
     }

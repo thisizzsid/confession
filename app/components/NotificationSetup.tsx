@@ -80,7 +80,7 @@ export function useNotifications() {
 
             onMessage(messaging, (payload) => {
               if (Notification.permission === "granted") {
-                new Notification(payload.notification?.title || "EMESIS", {
+                new Notification(payload.notification?.title || "Confession", {
                   body: payload.notification?.body,
                   icon: "/logoemesis.png",
                   badge: "/logoemesis.png",

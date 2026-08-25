@@ -257,8 +257,9 @@ export default function FeedPage() {
             </h1>
 
             <p className="mt-4 text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed font-light tracking-tight">
-              emesis is a quiet place to release Confessions thoughts you don’t usually say out loud —
+              Confession is a quiet place to release thoughts you don't usually say out loud —
               <span className="text-(--gold-primary) font-medium"> no judgement, just honesty.</span>
+              <span className="block mt-2 text-[10px] uppercase tracking-[0.2em] text-zinc-600 font-bold">Owned by SA Studios · Crafted in USA 🇺🇸</span>
             </p>
           </div>
         </FadeIn>
