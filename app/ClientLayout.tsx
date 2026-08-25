@@ -38,6 +38,7 @@ export default function ClientLayout({
   }, []);
 
   const isLoginPage = pathname === "/login" || pathname === "/signup" || pathname === "/onboarding";
+  const isChatRoom = pathname.startsWith("/chat/");
 
   return (
     <>
@@ -71,16 +72,16 @@ export default function ClientLayout({
         </div>
       )}
 
-      <Navbar />
-      <OnboardingTour />
+      {!isChatRoom && <Navbar />}
+      {!isChatRoom && <OnboardingTour />}
       <main
         className={`flex-1 overflow-y-auto overflow-x-hidden ios-smooth-scroll ${
-          isLoginPage ? "" : "pb-24 md:pb-20 pt-18 md:pt-20 md:ml-64 safe-area-bottom"
+          isLoginPage || isChatRoom ? "" : "pb-24 md:pb-20 pt-18 md:pt-20 md:ml-64 safe-area-bottom"
         }`}
       >
         <PageTransition>{children}</PageTransition>
       </main>
-      {!isLoginPage && <Footer />}
+      {!isLoginPage && !isChatRoom && <Footer />}
     </>
   );
 }

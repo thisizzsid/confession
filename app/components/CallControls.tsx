@@ -25,6 +25,50 @@ interface CallControlsProps {
 type CallType = "audio" | "video";
 type CallState = "idle" | "calling" | "connected";
 
+const getMediaConstraints = (type: CallType): MediaStreamConstraints => ({
+  audio: {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+    channelCount: { ideal: 2 },
+    sampleRate: { ideal: 48000 },
+  },
+  video: type === "video" ? {
+    facingMode: "user",
+    width: { ideal: 1280, max: 1920 },
+    height: { ideal: 720, max: 1080 },
+    frameRate: { ideal: 30, max: 60 },
+  } : false,
+});
+
+async function requestMedia(type: CallType) {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error("Media devices are not supported by this browser.");
+  }
+
+  try {
+    return await navigator.mediaDevices.getUserMedia(getMediaConstraints(type));
+  } catch (error: any) {
+    if (error?.name !== "OverconstrainedError") throw error;
+    return navigator.mediaDevices.getUserMedia({ audio: true, video: type === "video" });
+  }
+}
+
+async function optimizeVideoSender(peer: RTCPeerConnection) {
+  const videoSender = peer.getSenders().find((sender) => sender.track?.kind === "video");
+  if (!videoSender) return;
+  const parameters = videoSender.getParameters();
+  const encoding = parameters.encodings?.[0];
+  if (!encoding) return;
+  encoding.maxBitrate = 2_500_000;
+  encoding.maxFramerate = 30;
+  try {
+    await videoSender.setParameters(parameters);
+  } catch {
+    // Some browsers expose capture constraints but not sender tuning.
+  }
+}
+
 export default function CallControls({
   chatId,
   localUid,
@@ -45,8 +89,41 @@ export default function CallControls({
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
+  const ringtoneRef = useRef<AudioContext | null>(null);
+  const ringtoneTimerRef = useRef<number | null>(null);
+
+  const stopRingtone = () => {
+    if (ringtoneTimerRef.current !== null) window.clearInterval(ringtoneTimerRef.current);
+    ringtoneTimerRef.current = null;
+    ringtoneRef.current?.close().catch(() => {});
+    ringtoneRef.current = null;
+  };
+
+  const startRingtone = () => {
+    if (ringtoneRef.current || typeof window === "undefined") return;
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    ringtoneRef.current = context;
+    const ring = () => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.frequency.setValueAtTime(740, context.currentTime);
+      oscillator.frequency.setValueAtTime(880, context.currentTime + 0.18);
+      gain.gain.setValueAtTime(0.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.38);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.4);
+    };
+    ring();
+    ringtoneTimerRef.current = window.setInterval(ring, 1400);
+  };
 
   const stopMedia = () => {
+    stopRingtone();
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
     peerRef.current?.close();
     localStreamRef.current = null;
@@ -97,7 +174,7 @@ export default function CallControls({
     if (!db || !remoteUid || callState !== "idle") return;
     setError("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === "video" });
+      const stream = await requestMedia(type);
       localStreamRef.current = stream;
       const callRef = await addDoc(collection(db as Firestore, "calls"), {
         chatId,
@@ -110,6 +187,7 @@ export default function CallControls({
       callIdRef.current = callRef.id;
       const peer = createPeer(type, callRef.id, "callerCandidates");
       stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+      await optimizeVideoSender(peer);
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
       await updateDoc(callRef, { offer: { type: offer.type, sdp: offer.sdp } });
@@ -125,14 +203,16 @@ export default function CallControls({
     if (!db || !incomingCall) return;
     const call = incomingCall;
     setIncomingCall(null);
+    stopRingtone();
     setError("");
     try {
       const type = call.type as CallType;
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === "video" });
+      const stream = await requestMedia(type);
       localStreamRef.current = stream;
       callIdRef.current = call.id;
       const peer = createPeer(type, call.id, "calleeCandidates");
       stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+      await optimizeVideoSender(peer);
       await peer.setRemoteDescription(call.offer);
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
@@ -152,6 +232,7 @@ export default function CallControls({
   const rejectCall = async () => {
     if (db && incomingCall) await updateDoc(doc(db as Firestore, "calls", incomingCall.id), { status: "declined" });
     setIncomingCall(null);
+    stopRingtone();
   };
 
   const hangUp = async () => {
@@ -173,6 +254,7 @@ export default function CallControls({
         .map((item) => ({ id: item.id, ...item.data() }))
         .find((item: any) => item.callerId === remoteUid && item.chatId === chatId && item.offer);
       if (call && callState === "idle") setIncomingCall(call);
+      if (call && callState === "idle") startRingtone();
     });
   }, [chatId, localUid, remoteUid, callState]);
 
@@ -200,7 +282,10 @@ export default function CallControls({
     if (remoteAudioRef.current && remoteStreamRef.current) remoteAudioRef.current.srcObject = remoteStreamRef.current;
   }, [callState, remoteStreamReady]);
 
-  useEffect(() => () => stopMedia(), []);
+  useEffect(() => () => {
+    stopRingtone();
+    stopMedia();
+  }, []);
 
   if (!remoteUid || remoteUid === "ai") return null;
 
@@ -216,8 +301,12 @@ export default function CallControls({
       </div>
 
       {incomingCall && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-(--dark-card) p-6 text-center shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md">
+          <div className="w-full max-w-sm rounded-3xl border border-(--gold-primary)/25 bg-(--dark-card) p-6 text-center shadow-2xl shadow-black/30">
+            <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-(--gold-primary)/10 text-(--gold-primary)">
+              <span className="absolute inset-0 animate-ping rounded-full border border-(--gold-primary)/40" />
+              {incomingCall.type === "video" ? <Video className="h-8 w-8" /> : <Phone className="h-8 w-8" />}
+            </div>
             <p className="text-xs uppercase tracking-widest text-(--gold-primary)">Incoming {incomingCall.type} call</p>
             <h3 className="mt-2 text-xl font-bold text-white">{remoteName} is calling</h3>
             <div className="mt-6 flex justify-center gap-3">
@@ -242,7 +331,7 @@ export default function CallControls({
               {callType === "video" && <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-cover" />}
               {callType === "audio" && <audio ref={remoteAudioRef} autoPlay />}
               {callType === "audio" && <div className="flex h-full items-center justify-center text-5xl text-(--gold-primary)">{remoteName.charAt(0).toUpperCase()}</div>}
-              {callType === "video" && <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-3 right-3 h-24 w-32 rounded-xl border border-white/20 bg-black object-cover" />}
+              {callType === "video" && <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-3 right-3 h-24 w-32 scale-x-[-1] rounded-xl border border-white/20 bg-black object-cover shadow-lg sm:h-32 sm:w-44" />}
             </div>
             {error && <p className="mt-3 text-center text-sm text-red-300">{error}</p>}
             <div className="mt-4 flex justify-center gap-3">

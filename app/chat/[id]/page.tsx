@@ -49,7 +49,7 @@ export default function ChatRoom({ params }: { params: any }) {
   const [partnerIsTyping, setPartnerIsTyping] = useState(false);
   const [showReactions, setShowReactions] = useState<string | null>(null);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const bottomRef = useRef<any>(null);
   const typingTimeoutRef = useRef<any>(null);
@@ -274,13 +274,13 @@ export default function ChatRoom({ params }: { params: any }) {
     );
 
   return (
-    <div data-theme={theme} className="relative flex flex-col h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] min-h-[calc(100vh-5rem)] bg-black text-white overflow-hidden">
+    <div data-theme={theme} className="relative flex min-h-dvh flex-col overflow-hidden bg-(--background) text-white">
       {/* Background Elements */}
-      <div className="absolute top-20 right-20 w-96 h-96 bg-(--gold-primary)/5 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-20 left-20 w-96 h-96 bg-zinc-900/50 rounded-full blur-3xl"></div>
+      <div className="pointer-events-none absolute -right-48 top-20 h-96 w-96 rounded-full bg-(--gold-primary)/5 blur-3xl"></div>
+      <div className="pointer-events-none absolute bottom-20 -left-48 h-96 w-96 rounded-full bg-white/2 blur-3xl"></div>
 
       {/* Header */}
-      <div className="glass border-b border-zinc-800/50 backdrop-blur-xl px-4 py-3 flex items-center gap-4 z-20 shrink-0 shadow-lg shadow-black/20">
+      <div className="glass relative z-20 flex shrink-0 items-center gap-3 border-b border-white/10 px-3 py-3 shadow-lg shadow-black/10 backdrop-blur-xl sm:gap-4 sm:px-5">
         <button
           type="button"
           onClick={() => router.push("/chat")}
@@ -295,7 +295,7 @@ export default function ChatRoom({ params }: { params: any }) {
         {/* User Info */}
         <div className="flex items-center gap-3 flex-1 overflow-hidden">
           <div className="relative shrink-0">
-            <div className="w-10 h-10 rounded-full bg-linear-to-br from-zinc-700 to-zinc-800 flex items-center justify-center border border-zinc-700 shadow-inner">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-(--gold-primary)/25 bg-(--gold-primary)/10 shadow-inner">
               <span className="text-zinc-300 font-bold text-lg">
                 {otherUser?.username?.[0]?.toUpperCase() || "?"}
               </span>
@@ -311,8 +311,8 @@ export default function ChatRoom({ params }: { params: any }) {
               {otherUser?.username || "Loading..."}
             </h2>
             {isUserOnline(otherUser?.lastSeen) ? (
-              <p className="text-[10px] text-green-500 font-medium tracking-wide uppercase flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></span>
+              <p className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-(--gold-primary)">
+                <span className="h-1 w-1 animate-pulse rounded-full bg-(--gold-primary)"></span>
                 Active Now
               </p>
             ) : (
@@ -331,14 +331,6 @@ export default function ChatRoom({ params }: { params: any }) {
             remoteUid={partnerUid}
             remoteName={otherUser?.username || "User"}
           />
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-full hover:bg-zinc-800/50 text-zinc-400 hover:text-white transition-colors"
-            aria-label="Chat details"
-            title="Chat details"
-          >
-            <Info className="w-5 h-5" />
-          </button>
         </div>
       </div>
 
@@ -347,7 +339,7 @@ export default function ChatRoom({ params }: { params: any }) {
         <div className="flex-1 flex flex-col relative min-w-0">
           
           {/* Messages List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth overscroll-contain">
+          <div className="flex-1 space-y-5 overflow-y-auto p-3 scroll-smooth overscroll-contain sm:space-y-6 sm:p-5">
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-zinc-600 space-y-4 opacity-50">
                 <div className="w-16 h-16 rounded-2xl bg-zinc-900 flex items-center justify-center rotate-3">
@@ -391,10 +383,10 @@ export default function ChatRoom({ params }: { params: any }) {
                       <HoverScale>
                         <div
                           className={cn(
-                            "relative px-4 py-2.5 shadow-sm text-sm md:text-base wrap-break-word leading-relaxed transition-all",
+                            "relative px-4 py-2.5 text-sm leading-relaxed wrap-break-word shadow-sm transition-all sm:px-5 sm:text-base",
                             isMe 
-                              ? "bg-linear-to-br from-(--gold-primary) to-[#F0C050] text-black rounded-2xl rounded-tr-sm" 
-                              : "bg-zinc-800 text-zinc-100 rounded-2xl rounded-tl-sm border border-zinc-700/50",
+                              ? "bg-(--gold-primary) text-black rounded-2xl rounded-tr-sm"
+                              : "bg-(--dark-card) text-zinc-100 rounded-2xl rounded-tl-sm border border-white/10",
                             isLast ? "mb-1" : "mb-0.5"
                           )}
                         >
@@ -454,19 +446,19 @@ export default function ChatRoom({ params }: { params: any }) {
           </div>
 
           {/* Input Area */}
-          <div className="p-3 md:p-4 bg-black/80 backdrop-blur-md border-t border-zinc-800/50 shrink-0 z-20">
+          <div className="z-20 shrink-0 border-t border-white/10 bg-(--background)/90 p-3 backdrop-blur-xl sm:p-4">
              <form 
                onSubmit={(e) => { e.preventDefault(); send(); }}
                className="flex items-end gap-2 max-w-4xl mx-auto"
              >
                 <div className="flex-1 relative group">
-                  <div className="absolute -inset-0.5 bg-linear-to-r from-zinc-800 to-zinc-700 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                  <div className="absolute -inset-0.5 rounded-2xl bg-(--gold-primary)/10 opacity-50 blur transition duration-500 group-focus-within:opacity-100"></div>
                   <input
                     type="text"
                     value={text}
                     onChange={(e) => { setText(e.target.value); handleTyping(); }}
                     placeholder="Message..."
-                    className="relative w-full bg-zinc-900/90 text-zinc-100 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-1 focus:ring-(--gold-primary)/50 placeholder:text-zinc-600 transition-all border border-zinc-800"
+                    className="relative w-full rounded-2xl border border-white/10 bg-(--dark-card) px-5 py-3.5 text-zinc-100 outline-none transition-all placeholder:text-zinc-500 focus:border-(--gold-primary)/50 focus:ring-2 focus:ring-(--gold-primary)/10"
                   />
                 </div>
                 
