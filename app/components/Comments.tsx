@@ -138,16 +138,30 @@ export default function Comments({ postId, postAuthorId }: { postId: string, pos
     // Notify post author about reply
     if (postAuthorId && postAuthorId !== user.uid) {
         await addDoc(collection(db as Firestore, `users/${postAuthorId}/notifications`), {
-          type: "comment",
+          type: "reply",
           fromUid: user.uid,
-          message: `New reply on your post`,
+          fromName: user.displayName || "Someone",
+          message: `replied to your post`,
           createdAt: Timestamp.now(),
           read: false,
           postId,
         });
     }
 
-    // Also notify parent comment author if different from post author (optional enhancement for later)
+    // Also notify parent comment author if different from post author and requester
+    const parent = comments.find((c) => c.id === parentId);
+    if (parent && parent.uid && parent.uid !== user.uid && parent.uid !== postAuthorId) {
+        await addDoc(collection(db as Firestore, `users/${parent.uid}/notifications`), {
+          type: "reply",
+          fromUid: user.uid,
+          fromName: user.displayName || "Someone",
+          message: `replied to your comment`,
+          createdAt: Timestamp.now(),
+          read: false,
+          postId,
+          commentId: parentId,
+        });
+    }
   };
 
   const notifyMentions = async (content: string) => {

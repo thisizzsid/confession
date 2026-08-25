@@ -20,22 +20,27 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('📬 Background message received:', payload);
 
+  const imageUrl = payload.notification?.image || null;
   const notificationTitle = payload.notification?.title || 'Confession';
   const notificationOptions = {
     body: payload.notification?.body || 'New update',
-    icon: '/logoemesis.png',
-    badge: '/logoemesis.png',
-    tag: payload.data?.type || 'notification',
-    data: payload.data,
-    requireInteraction: false,
+    icon: '/icon-512.png',
+    badge: '/notification-icon.png',
+    tag: payload.data?.tag || payload.data?.type || ('confession-' + Math.random().toString(36).slice(2, 8)),
+    renotify: true,
+    data: { ...(payload.data || {}) },
+    requireInteraction: !!payload.data?.url || !!payload.data?.click_action,
+    silent: false,
+    ...(imageUrl ? { image: imageUrl } : {}),
     actions: [
       {
         action: 'open',
-        title: 'Open',
+        title: 'Open Confession',
+        icon: '/icon-192.png',
       },
       {
         action: 'close',
-        title: 'Close',
+        title: 'Dismiss',
       },
     ],
   };
@@ -46,7 +51,6 @@ messaging.onBackgroundMessage((payload) => {
 // Handle notification click
 self.addEventListener('notificationclick', (event) => {
   console.log('🔔 Notification clicked:', event.notification.tag);
-
   event.notification.close();
 
   if (event.action === 'close') {
@@ -59,19 +63,19 @@ self.addEventListener('notificationclick', (event) => {
       .matchAll({ type: 'window', includeUncontrolled: true })
       .then((windowClients) => {
         const data = event.notification?.data || {};
-        const isChat = data?.type === 'chat_message' && data?.chatId;
-        const targetUrl = isChat ? `/chat/${data.chatId}` : '/feed';
+        const clickAction = data.click_action || data.url || data.clickAction || '';
+        const isChat = data.type === 'chat_message' && data.chatId;
+        let targetUrl = isChat ? `/chat/${data.chatId}` : (data.postId ? `/feed#post-${data.postId}` : '/feed');
+        if (typeof clickAction === 'string' && clickAction.startsWith('/')) targetUrl = clickAction;
+        if (typeof clickAction === 'string' && /^https?:\/\//.test(clickAction)) targetUrl = clickAction;
 
         // Check if already open
         for (let i = 0; i < windowClients.length; i++) {
           const client = windowClients[i];
-          // Focus a client with same origin; navigate if needed
           if ('focus' in client) {
             try {
-              // If the same path, just focus
-              const samePath = new URL(client.url).pathname === targetUrl;
+              const samePath = new URL(client.url).pathname === new URL(targetUrl, self.location.href).pathname;
               if (samePath) return client.focus();
-              // Else try navigate
               if ('navigate' in client) return client.navigate(targetUrl);
             } catch {}
           }

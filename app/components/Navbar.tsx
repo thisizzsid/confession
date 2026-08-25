@@ -14,8 +14,10 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const { notificationEnabled } = useNotifications();
-  const [notificationCount, setNotificationCount] = useState(0);
+  const notifications = useNotifications() as any;
+  const notificationEnabled = notifications.notificationEnabled || notifications.enabled;
+  const unreadCount: number = (notifications.unreadCount ?? 0) as number;
+  const setOpenDrawer = notifications.setOpenDrawer;
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCollabToast, setShowCollabToast] = useState(false);
@@ -31,23 +33,7 @@ export default function Navbar() {
   }, []);
 
   // Check for notifications on mount and interval
-  useEffect(() => {
-    const checkNotifications = () => {
-      try {
-        const stored = localStorage.getItem("notificationCount");
-        if (stored) {
-          const count = parseInt(stored);
-          setNotificationCount(isNaN(count) ? 0 : count);
-        }
-      } catch (e) {
-        console.error("Notification error:", e);
-      }
-    };
-
-    checkNotifications();
-    const interval = setInterval(checkNotifications, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  const notificationCount = unreadCount;
 
   // Check for unread messages
   useEffect(() => {
@@ -277,8 +263,13 @@ export default function Navbar() {
         {/* Right: Notifications (Desktop Only) */}
         <div className="hidden md:flex items-center gap-2 ml-6">
           <div className="relative">
-            <button className="alert-btn relative p-2" aria-label="Notifications" type="button">
-              <Bell className="w-5 h-5" />
+            <button
+              onClick={() => setOpenDrawer?.(!notifications.openDrawer)}
+              className="alert-btn relative p-2 hover:bg-white/5 rounded-xl transition border border-transparent hover:border-white/10"
+              aria-label="Notifications"
+              type="button"
+            >
+              <Bell className={`w-5 h-5 ${notificationCount > 0 ? "text-(--gold-primary) animate-[wiggle_1s_ease-in-out_infinite]" : ""}`} />
             </button>
             {notificationCount > 0 && (
               <span className="notification-badge absolute -top-2 -right-2">
@@ -369,6 +360,24 @@ export default function Navbar() {
             isActive={isActive("/profile")}
             onClick={handleNavClick}
           />
+
+          <div className="relative">
+            <SidebarNavButton
+              href="/notifications"
+              label="Notifications"
+              icon={Bell}
+              isActive={isActive("/notifications")}
+              onClick={() => {
+                setOpenDrawer?.(true);
+                handleNavClick();
+              }}
+            />
+            {notificationCount > 0 && (
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-lg animate-pulse px-1">
+                {notificationCount > 9 ? "9+" : notificationCount}
+              </span>
+            )}
+          </div>
 
           <div className="relative">
             <SidebarNavButton

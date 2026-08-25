@@ -18,10 +18,16 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import Link from "next/link";
+import { useNotifications } from "../components/NotificationSetup";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
+  const ctx = useNotifications() as any;
   const [items, setItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (Array.isArray(ctx.items)) setItems(ctx.items);
+  }, [ctx.items]);
 
   const load = async () => {
     if (!user || !db) return;
@@ -34,6 +40,10 @@ export default function NotificationsPage() {
   };
 
   const markRead = async (id: string) => {
+    if (ctx.markRead) {
+      await ctx.markRead(id);
+      return;
+    }
     if (!user || !db) return;
     await updateDoc(doc(db as Firestore, `users/${user.uid}/notifications/${id}`), {
       read: true,
@@ -42,6 +52,10 @@ export default function NotificationsPage() {
   };
 
   const followBack = async (fromUid: string) => {
+    if (ctx.followBack) {
+      await ctx.followBack(fromUid);
+      return;
+    }
     if (!user || !db) return;
     
     // Check if already following
@@ -95,11 +109,17 @@ export default function NotificationsPage() {
         if (n.type === "comment") icon = "💬";
         if (n.type === "reply") icon = "🔁";
         if (n.type === "follow") icon = "➕";
+        if (n.type === "mention") icon = "💠";
+        if (n.type === "theme") icon = "🎨";
+        if (n.type === "campaign" || n.type === "system") icon = "📢";
 
         if (n.type === "like") label = "liked your post";
         if (n.type === "comment") label = "commented on your post";
         if (n.type === "reply") label = "replied to your comment";
         if (n.type === "follow") label = "followed you";
+        if (n.type === "mention") label = "mentioned you";
+        if (n.type === "theme") label = "updated their accent color";
+        if (n.type === "campaign" || n.type === "system") label = n.message || "new update";
 
         return (
           <div
