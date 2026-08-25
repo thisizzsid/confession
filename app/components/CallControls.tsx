@@ -318,26 +318,26 @@ export default function CallControls({
       )}
 
       {callState !== "idle" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-          <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-(--dark-card) p-4 shadow-2xl sm:p-6">
-            <div className="mb-4 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
+          <div className="relative h-full w-full overflow-hidden bg-black sm:h-auto sm:max-h-[90dvh] sm:max-w-lg sm:rounded-3xl sm:border sm:border-white/10 sm:bg-(--dark-card) sm:p-4 sm:shadow-2xl">
+            <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between bg-linear-to-b from-black/70 to-transparent p-5 pb-12 sm:relative sm:bg-transparent sm:p-2 sm:pb-4">
               <div>
-                <p className="text-xs uppercase tracking-widest text-(--gold-primary)">{callState === "calling" ? "Calling" : "Connected"}</p>
-                <h3 className="text-xl font-bold text-white">{remoteName}</h3>
+                <p className="text-[10px] uppercase tracking-widest text-(--gold-primary)">{callState === "calling" ? "Calling" : "Connected"}</p>
+                <h3 className="text-lg font-bold text-white sm:text-xl">{remoteName}</h3>
               </div>
-              <button type="button" onClick={hangUp} className="rounded-full bg-red-500/20 p-3 text-red-300 hover:bg-red-500/30" aria-label="End call" title="End call"><PhoneOff className="h-5 w-5" /></button>
+              <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-300">{callType}</span>
             </div>
-            <div className="relative aspect-video overflow-hidden rounded-2xl bg-black">
+            <div className="relative h-full min-h-dvh overflow-hidden bg-black sm:aspect-video sm:h-auto sm:min-h-0 sm:rounded-2xl">
               {callType === "video" && <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-cover" />}
               {callType === "audio" && <audio ref={remoteAudioRef} autoPlay />}
-              {callType === "audio" && <div className="flex h-full items-center justify-center text-5xl text-(--gold-primary)">{remoteName.charAt(0).toUpperCase()}</div>}
-              {callType === "video" && <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-3 right-3 h-24 w-32 scale-x-[-1] rounded-xl border border-white/20 bg-black object-cover shadow-lg sm:h-32 sm:w-44" />}
+              {callType === "audio" && <div className="flex h-full min-h-dvh flex-col items-center justify-center gap-5 bg-(--dark-card) text-(--gold-primary) sm:min-h-0"><div className="flex h-28 w-28 items-center justify-center rounded-full border border-(--gold-primary)/30 bg-(--gold-primary)/10 text-5xl font-semibold">{remoteName.charAt(0).toUpperCase()}</div><span className="text-sm text-zinc-400">{callState === "calling" ? "Waiting for answer..." : "Audio connected"}</span></div>}
+              {callType === "video" && <video ref={localVideoRef} autoPlay muted playsInline className="absolute right-4 top-20 h-32 w-24 scale-x-[-1] rounded-2xl border border-white/30 bg-black object-cover shadow-2xl sm:bottom-4 sm:right-4 sm:top-auto sm:h-32 sm:w-44" />}
             </div>
-            {error && <p className="mt-3 text-center text-sm text-red-300">{error}</p>}
-            <div className="mt-4 flex justify-center gap-3">
-              <button type="button" onClick={() => { localStreamRef.current?.getAudioTracks().forEach((track) => { track.enabled = muted; }); setMuted(!muted); }} className="rounded-full bg-white/10 p-3 text-white hover:bg-white/20" aria-label={muted ? "Unmute microphone" : "Mute microphone"} title={muted ? "Unmute microphone" : "Mute microphone"}>{muted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}</button>
-              {callType === "video" && <button type="button" onClick={() => { localStreamRef.current?.getVideoTracks().forEach((track) => { track.enabled = cameraOff; }); setCameraOff(!cameraOff); }} className="rounded-full bg-white/10 p-3 text-white hover:bg-white/20" aria-label={cameraOff ? "Turn camera on" : "Turn camera off"} title={cameraOff ? "Turn camera on" : "Turn camera off"}>{cameraOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}</button>}
-              <button type="button" onClick={hangUp} className="rounded-full bg-red-500 p-3 text-white hover:bg-red-600" aria-label="End call" title="End call"><PhoneOff className="h-5 w-5" /></button>
+            {error && <p className="absolute bottom-28 left-5 right-5 z-10 rounded-xl bg-red-950/80 p-3 text-center text-sm text-red-200 sm:relative sm:bottom-auto sm:left-auto sm:right-auto sm:mt-3">{error}</p>}
+            <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-center gap-4 bg-linear-to-t from-black/80 to-transparent p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:relative sm:bg-transparent sm:p-3">
+              <button type="button" onClick={() => { localStreamRef.current?.getAudioTracks().forEach((track) => { track.enabled = muted; }); setMuted(!muted); }} className="rounded-full bg-white/15 p-4 text-white backdrop-blur-md hover:bg-white/25" aria-label={muted ? "Unmute microphone" : "Mute microphone"} title={muted ? "Unmute microphone" : "Mute microphone"}>{muted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}</button>
+              {callType === "video" && <button type="button" onClick={() => { localStreamRef.current?.getVideoTracks().forEach((track) => { track.enabled = cameraOff; }); setCameraOff(!cameraOff); }} className="rounded-full bg-white/15 p-4 text-white backdrop-blur-md hover:bg-white/25" aria-label={cameraOff ? "Turn camera on" : "Turn camera off"} title={cameraOff ? "Turn camera on" : "Turn camera off"}>{cameraOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}</button>}
+              <button type="button" onClick={hangUp} className="rounded-full bg-red-500 p-4 text-white shadow-lg shadow-red-500/30 hover:bg-red-600" aria-label="End call" title="End call"><PhoneOff className="h-5 w-5" /></button>
             </div>
           </div>
         </div>

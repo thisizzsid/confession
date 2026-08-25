@@ -12,12 +12,19 @@ export default function OnboardingTour() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    // Check if user is logged in and hasn't seen the tour
-    if (user && user.profile && user.profile.tourCompleted === undefined) {
-      // Small delay to ensure smooth entrance after page load
-      const timer = setTimeout(() => setIsVisible(true), 1500);
-      return () => clearTimeout(timer);
-    }
+    if (!user) return;
+
+    const storageKey = `confession-onboarding-seen:${user.uid}`;
+    let hasSeenLocally = false;
+    try {
+      hasSeenLocally = window.localStorage.getItem(storageKey) === "true";
+    } catch {}
+
+    if (hasSeenLocally || user.profile?.tourCompleted === true) return;
+
+    // Small delay to ensure smooth entrance after page load.
+    const timer = setTimeout(() => setIsVisible(true), 1500);
+    return () => clearTimeout(timer);
   }, [user]);
 
   const completeTour = async () => {
@@ -25,6 +32,10 @@ export default function OnboardingTour() {
     
     // Hide immediately for responsiveness
     setIsVisible(false);
+
+    try {
+      window.localStorage.setItem(`confession-onboarding-seen:${user.uid}`, "true");
+    } catch {}
 
     try {
       const ref = doc(db as Firestore, "users", user.uid);

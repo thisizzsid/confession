@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Shield, Bell, Send, Lock, Image as ImageIcon, Link as LinkIcon, CheckCircle, AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Shield, Bell, Send, Lock, Image as ImageIcon, Link as LinkIcon, LogOut, Users, CheckCircle, AlertCircle } from "lucide-react";
 import Toast from "../components/Toast";
 
 export default function AdminPage() {
@@ -17,12 +17,33 @@ export default function AdminPage() {
     link: ""
   });
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetch("/api/admin/auth", { credentials: "include" })
+      .then((response) => response.json())
+      .then((data) => setIsAuthenticated(data.authenticated === true))
+      .catch(() => setIsAuthenticated(false));
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, verify against server, but here we just unlock the UI
-    // The real check happens when sending the campaign API request
-    if (password) {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ password }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Invalid admin credentials");
+      }
       setIsAuthenticated(true);
+      setPassword("");
+    } catch (error: any) {
+      setToast({ message: error.message, type: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,8 +55,8 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/push", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
-          password, // Send password to verify on server
           ...campaign
         }),
       });
@@ -64,12 +85,18 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogout = async () => {
+    await fetch("/api/admin/auth", { method: "DELETE", credentials: "include" });
+    setIsAuthenticated(false);
+    setCampaign({ title: "", body: "", image: "", link: "" });
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-(--background) p-4">
-        <div className="glass-card max-w-md w-full p-8 rounded-3xl border border-(--glass-border) bg-(--glass-bg)">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-(--gold-primary)/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="glass-card max-w-md w-full rounded-3xl border border-(--glass-border) bg-(--glass-bg) p-6 sm:p-8">
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-(--gold-primary)/10">
               <Shield className="w-8 h-8 text-(--gold-primary)" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
@@ -88,9 +115,10 @@ export default function AdminPage() {
                 autoFocus
               />
             </div>
-            <button
+              <button
               type="submit"
-              className="w-full bg-(--gold-primary) text-black font-bold py-3 rounded-xl hover:bg-(--gold-light) transition-colors"
+                disabled={loading || !password}
+                className="w-full rounded-xl bg-(--gold-primary) py-3 font-bold text-black transition-colors hover:bg-(--gold-light) disabled:cursor-not-allowed disabled:opacity-50"
             >
               Access Dashboard
             </button>
@@ -101,9 +129,10 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-(--background) text-white p-4 md:p-8">
+    <div className="min-h-dvh bg-(--background) p-4 text-white md:p-8">
       <div className="max-w-2xl mx-auto space-y-8">
-        <header className="flex items-center gap-4 mb-12">
+        <header className="mb-12 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-(--gold-primary)/10 rounded-xl flex items-center justify-center">
             <Shield className="w-6 h-6 text-(--gold-primary)" />
           </div>
@@ -111,9 +140,18 @@ export default function AdminPage() {
             <h1 className="text-2xl font-bold">Admin Dashboard</h1>
             <p className="text-zinc-400">Push Notification Campaigns</p>
           </div>
+          </div>
+          <button type="button" onClick={handleLogout} className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-sm text-zinc-400 transition hover:border-(--gold-primary)/40 hover:text-(--gold-primary)" aria-label="Sign out of admin panel">
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Sign out</span>
+          </button>
         </header>
 
-        <div className="glass-card p-6 md:p-8 rounded-3xl border border-(--glass-border) bg-(--glass-bg)">
+        <div className="glass-card rounded-3xl border border-(--glass-border) bg-(--glass-bg) p-6 md:p-8">
+          <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-5">
+            <Users className="h-5 w-5 text-(--gold-primary)" />
+            <p className="text-sm text-zinc-400">Send a notification to all users with push notifications enabled.</p>
+          </div>
           <form onSubmit={handleSend} className="space-y-6">
             
             <div className="space-y-2">

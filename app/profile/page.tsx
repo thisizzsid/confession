@@ -473,23 +473,23 @@ function ProfileContent() {
     <div
       className={`flex min-h-screen flex-col items-center bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] px-4 py-10 text-(--gold-primary) sm:px-6 md:px-6 md:py-16 ${accentColor ? ACCENT_THEME_CLASSES[accentColor] || "" : ""}`}
     >
-      <div className="w-full max-w-5xl animate-fadeIn">
+      <div className="w-full max-w-4xl animate-fadeIn">
         {/* Hero */}
         <div className="glass relative mb-6 overflow-hidden rounded-3xl border border-white/10 sm:mb-8">
-          <div className="absolute inset-0 bg-linear-to-r from-(--gold-primary)/20 via-transparent to-(--gold-light)/10 opacity-20" />
-          <div className="relative flex flex-col items-center gap-6 p-6 sm:p-10 md:flex-row md:items-end">
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border border-(--gold-primary)/30 bg-linear-to-br from-(--gold-primary)/15 to-transparent text-3xl font-bold shadow-lg shadow-(--gold-primary)/10 sm:h-28 sm:w-28">
+          <div className="absolute inset-0 bg-linear-to-br from-(--gold-primary)/10 via-transparent to-transparent" />
+          <div className="relative flex flex-col items-center gap-5 p-6 sm:p-8 md:flex-row md:items-center">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-(--gold-primary)/30 bg-(--gold-primary)/10 text-3xl font-bold shadow-lg shadow-(--gold-primary)/10 sm:h-24 sm:w-24 sm:text-4xl">
               {data.username ? data.username.charAt(0).toUpperCase() : "?"}
             </div>
 
             <div className="w-full min-w-0 flex-1">
               <div className="flex flex-col items-center justify-between gap-4 sm:flex-row sm:items-end sm:gap-6">
                 <div className="min-w-0 text-center sm:text-left">
-                  <h1 className="flex flex-wrap items-center justify-center gap-2 text-3xl font-black tracking-tight text-(--gold-secondary) sm:justify-start sm:text-4xl">
+                  <h1 className="flex flex-wrap items-center justify-center gap-2 text-3xl font-black tracking-tight text-white sm:justify-start sm:text-4xl">
                     {data.username || "No Username"}
                     {isVerified && <VerifiedBadge />}
                   </h1>
-                  <p className="mt-1 text-xs text-zinc-500 sm:text-sm">Joined {displayJoined}</p>
+                  <p className="mt-1 text-xs text-zinc-500 sm:text-sm">Joined {displayJoined}<span className="mx-2 text-zinc-700">·</span>{followersCount} followers</p>
                 </div>
 
                 <div className="flex w-full items-center justify-center gap-2 sm:w-auto sm:justify-end">
@@ -569,7 +569,7 @@ function ProfileContent() {
         )}
 
         {/* Stats */}
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:gap-4 lg:grid-cols-5">
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:grid-cols-4">
           <StatCard label="Followers" value={followersCount} />
           <StatCard label="Following" value={followingCount} />
           <StatCard
@@ -582,11 +582,7 @@ function ProfileContent() {
             value={stats.totalLikes}
             sparkline={<Sparkline values={stats.likesPerDay} color={lighten(accentColor || "#F5C26B", 25)} />}
           />
-          <StatCard
-            label="Views (7d)"
-            value={stats.totalViews}
-            sparkline={<Sparkline values={stats.viewsPerDay} color={lighten(accentColor || "#F5C26B", -40)} />}
-          />
+          <StatCard label="Views (7d)" value={stats.totalViews} sparkline={<Sparkline values={stats.viewsPerDay} color={lighten(accentColor || "#F5C26B", -40)} />} />
         </div>
 
         {/* Theme Options (owner only) */}

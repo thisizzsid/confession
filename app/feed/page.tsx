@@ -31,6 +31,18 @@ import { getPlaceName } from "../utils/geocoding";
 import { FadeIn, HoverScale } from "../components/Motion";
 import { extractHashtags, getDeviceName } from "../lib/utils";
 
+const LOCAL_RADIUS_KM = 2;
+
+const distanceInKm = (latitudeA: number, longitudeA: number, latitudeB: number, longitudeB: number) => {
+  const earthRadiusKm = 6371;
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+  const latitudeDelta = toRadians(latitudeB - latitudeA);
+  const longitudeDelta = toRadians(longitudeB - longitudeA);
+  const value = Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(toRadians(latitudeA)) * Math.cos(toRadians(latitudeB)) * Math.sin(longitudeDelta / 2) ** 2;
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+};
+
 export default function FeedPage() {
   const { user } = useAuth();
   const [posts, setPosts] = useState<any[]>([]);
@@ -38,6 +50,7 @@ export default function FeedPage() {
   const [anonymous, setAnonymous] = useState(false);
   const [followMap, setFollowMap] = useState<{ [key: string]: boolean }>({});
   const [location, setLocation] = useState<string>("Unknown");
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [deviceType, setDeviceType] = useState<string>("Web");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
@@ -131,7 +144,9 @@ export default function FeedPage() {
         anonymous,
         likes: [],
         hashtags,
-        location,
+            location,
+            latitude: coordinates ? Number(coordinates.latitude.toFixed(3)) : null,
+            longitude: coordinates ? Number(coordinates.longitude.toFixed(3)) : null,
         device,
         createdAt: Timestamp.now()
       });
@@ -200,6 +215,7 @@ export default function FeedPage() {
         async (position) => {
           try {
             const { latitude, longitude } = position.coords;
+            setCoordinates({ latitude, longitude });
             const placeName = await getPlaceName(latitude, longitude);
             setLocation(placeName || "Unknown Location");
           } catch (error) {
@@ -220,12 +236,8 @@ export default function FeedPage() {
 
   const filteredPosts = posts.filter((post) => {
     if (feedType === "local") {
-      // If location is unknown or detecting, we might want to wait or show nothing
-      // But for better UX, if we have a location, we enforce strict match
-      if (!location || location === "Unknown" || location === "Location disabled" || location === "Location unavailable" || location === "Location not supported") {
-         return false; 
-      }
-      return post.location === location;
+      if (!coordinates || typeof post.latitude !== "number" || typeof post.longitude !== "number") return false;
+      return distanceInKm(coordinates.latitude, coordinates.longitude, post.latitude, post.longitude) <= LOCAL_RADIUS_KM;
     }
     return true; // Global feed shows everything
   });
@@ -356,7 +368,7 @@ export default function FeedPage() {
                 : "bg-zinc-900 text-zinc-500 hover:text-zinc-300"
             }`}
           >
-            📍 Local
+            📍 Local · 2 km
           </button>
           <button
             onClick={() => setFeedType("global")}

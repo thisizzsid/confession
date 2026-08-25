@@ -1,18 +1,33 @@
 import { NextResponse } from "next/server";
 import { adminDb, adminMessaging } from "@/lib/firebase-admin";
+import { adminCookieName, isAdminSessionValid } from "@/lib/admin-auth";
+
+const MAX_TITLE_LENGTH = 80;
+const MAX_BODY_LENGTH = 500;
+
+function validUrl(value: unknown) {
+  if (!value) return true;
+  if (typeof value !== "string" || value.length > 500) return false;
+  try {
+    const url = new URL(value, "https://confession.local");
+    return url.protocol === "https:" || (url.protocol === "https:" && url.hostname === "confession.local");
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(req: Request) {
   try {
-    const { password, title, body, image, link } = await req.json();
+    const session = req.headers.get("cookie")?.match(new RegExp(`${adminCookieName}=([^;]+)`))?.[1];
+    if (!isAdminSessionValid(session)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const { title, body, image, link } = await req.json();
 
-    if (password !== adminPassword) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (!title || !body) {
+    if (typeof title !== "string" || typeof body !== "string" || !title.trim() || !body.trim()) {
       return NextResponse.json({ error: "Missing title or body" }, { status: 400 });
+    }
+    if (title.length > MAX_TITLE_LENGTH || body.length > MAX_BODY_LENGTH || !validUrl(image) || !validUrl(link)) {
+      return NextResponse.json({ error: "Campaign content is too long or contains an invalid URL" }, { status: 400 });
     }
 
     // Fetch all users with notifications enabled
@@ -22,9 +37,7 @@ export async function POST(req: Request) {
     
     usersSnapshot.forEach((doc) => {
       const data = doc.data();
-      if (data.fcmTokens && Array.isArray(data.fcmTokens) && data.fcmTokens.length > 0) {
-        // You might want to filter for notificationsEnabled !== false
-        // assuming true by default if tokens exist
+      if (data.notificationsEnabled !== false && Array.isArray(data.fcmTokens) && data.fcmTokens.length > 0) {
         tokens.push(...data.fcmTokens);
       }
     });
@@ -51,6 +64,7 @@ export async function POST(req: Request) {
         data: {
           click_action: link || "/feed",
           url: link || "/feed",
+          type: "campaign",
         },
         tokens: batchTokens,
       };
