@@ -1,8 +1,5 @@
 {
   "framework": "nextjs",
-  "next": {
-    "autoVenv": true
-  },
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 60
