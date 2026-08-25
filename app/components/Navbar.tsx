@@ -163,39 +163,26 @@ export default function Navbar() {
               </svg>
             </button>
 
-            {/* Branding: Logo + Title */}
+            {/* Branding: Title Only */}
             <button
               onClick={() => router.push("/feed")}
-              className="flex items-center gap-2.5 md:gap-4 group relative shrink-0"
+              className="flex items-center group relative shrink-0"
               aria-label="Go to feed"
               type="button"
             >
-              <div className="relative w-12 h-12 md:w-14 md:h-14 flex items-center justify-center group-hover:scale-105 transition-all duration-500">
-                <div className="absolute -inset-1 bg-linear-to-br from-(--gold-primary) to-(--gold-light) opacity-30 blur-xl group-hover:opacity-70 transition-opacity rounded-2xl"></div>
-                <div className="absolute inset-0 rounded-xl bg-white/5 backdrop-blur-sm border border-(--gold-primary)/25 group-hover:border-(--gold-primary)/60 transition-all duration-500"></div>
-                <Image
-                  src="/logo.png"
-                  alt="Confession"
-                  fill
-                  className="object-contain relative z-10 p-1.5 drop-shadow-[0_0_12px_rgba(var(--gold-primary-rgb),0.8)]"
-                  sizes="56px"
-                  priority
-                />
-              </div>
-
               <div className="flex flex-col items-start leading-none">
-                <span className="text-xl md:text-[28px] font-black tracking-tighter bg-linear-to-r from-(--gold-primary) via-white via-60% to-(--gold-light) bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(var(--gold-primary-rgb),0.25)]">
+                <span className="text-2xl md:text-[32px] font-black tracking-tighter bg-linear-to-r from-(--gold-primary) via-white via-55% to-(--gold-light) bg-clip-text text-transparent drop-shadow-[0_0_22px_rgba(var(--gold-primary-rgb),0.35)]">
                   Confession
                 </span>
-                <span className="hidden sm:flex items-center gap-1.5 mt-1">
+                <span className="hidden sm:flex items-center gap-1.5 mt-1.5">
                   <span className="w-1 h-1 rounded-full bg-(--gold-primary) animate-pulse"></span>
-                  <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                  <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.22em]">
                     by SA Studios
                   </span>
                 </span>
               </div>
 
-              <div className="absolute -bottom-1.5 left-12 md:left-14 h-[2px] w-0 bg-linear-to-r from-(--gold-primary) via-(--gold-light) to-transparent group-hover:w-[70%] transition-all duration-500"></div>
+              <div className="absolute -bottom-1.5 left-0 h-[2px] w-0 bg-linear-to-r from-(--gold-primary) via-(--gold-light) to-transparent group-hover:w-full transition-all duration-500"></div>
             </button>
           </div>
 
