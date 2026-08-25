@@ -75,7 +75,7 @@ export default function ClientLayout({
       <OnboardingTour />
       <main
         className={`flex-1 overflow-y-auto overflow-x-hidden ios-smooth-scroll ${
-          isLoginPage ? "" : "pb-24 md:pb-20 pt-16 md:ml-64 safe-area-bottom"
+          isLoginPage ? "" : "pb-24 md:pb-20 pt-[72px] md:pt-20 md:ml-64 safe-area-bottom"
         }`}
       >
         <PageTransition>{children}</PageTransition>

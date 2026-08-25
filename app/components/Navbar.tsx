@@ -135,80 +135,125 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 w-full h-16 glass border-b border-(--gold-primary)/20 z-50 flex items-center px-4 md:px-6">
-        {/* Left: Menu Button (Mobile Only) */}
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="md:hidden flex items-center justify-center w-12 h-12 rounded-lg hover:bg-(--gold-primary)/10 transition-colors"
-          aria-label="Toggle sidebar"
-          type="button"
-        >
-          <svg
-            className="w-6 h-6 text-(--gold-primary)"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
+      <header className="fixed top-0 w-full z-50">
+        <div className="absolute inset-0 h-[200%] bg-[radial-gradient(ellipse_at_top,_color-mix(in_srgb,var(--gold-primary),transparent_88%),_transparent_60%)] pointer-events-none"></div>
+        <div className="relative h-[72px] md:h-20 glass border-b border-white/5 flex items-center px-3 md:px-8">
+          <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-linear-to-r from-transparent via-(--gold-primary)/40 to-transparent"></div>
 
-        {/* Center: Logo */}
-        <button
-          onClick={() => router.push("/feed")}
-          className="flex items-center gap-2 md:gap-3 text-xl md:text-3xl font-bold tracking-tight text-white hover:opacity-90 transition-all duration-500 group relative shrink-0"
-          aria-label="Go to feed"
-          type="button"
-        >
-          <div className="relative w-9 h-10 md:w-11 md:h-14 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-            <div className="absolute inset-0 bg-linear-to-r from-(--gold-primary) to-(--gold-light) opacity-30 blur-xl group-hover:opacity-60 transition-opacity duration-500"></div>
-            <Image
-              src="/logoemesis.png"
-              alt="Confession Logo"
-              fill
-              className="object-contain drop-shadow-[0_0_15px_rgba(var(--gold-primary-rgb),0.8)] relative z-10"
-              sizes="40px"
-            />
-          </div>
-          <span className="inline bg-linear-to-r from-(--gold-primary) via-(--gold-light) to-(--gold-primary) bg-clip-text text-transparent font-black tracking-tighter">
-            Confession
-          </span>
-          <div className="absolute -bottom-1 left-0 w-0 h-0.75 bg-linear-to-r from-(--gold-primary) to-(--gold-light) group-hover:w-full transition-all duration-500"></div>
-        </button>
-
-        {/* Minimalist Live Counter */}
-        <div className="flex items-center gap-2 ml-4 md:ml-8 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-white/5 border border-white/5 backdrop-blur-md">
-          <div className="relative">
-            <Globe className="w-3 md:w-3.5 h-3 md:h-3.5 text-(--gold-primary) animate-pulse" />
-            <div className="absolute inset-0 bg-(--gold-primary)/20 blur-sm rounded-full animate-ping"></div>
-          </div>
-          <div className="flex flex-col leading-none">
-            <span className="hidden sm:block text-[8px] md:text-[10px] font-black text-zinc-500 uppercase tracking-widest">Whispers</span>
-            <span className="text-[10px] md:text-xs font-black text-white tabular-nums">{totalPostsCount.toLocaleString()}</span>
-          </div>
-        </div>
-
-        {/* Right: Logout Button (Center-aligned on desktop, right-aligned on mobile) */}
-        <div className="flex-1 flex items-center justify-end md:justify-center">
-          <button
-            onClick={toggleTheme}
-            className={`relative mr-3 min-w-11 min-h-11 flex items-center justify-center p-2 rounded-xl transition-all duration-300 active:scale-95 group overflow-hidden ${
-              theme === "light"
-                ? "bg-zinc-900 text-white hover:bg-black hover:shadow-[0_0_20px_rgba(0,0,0,0.3)]"
-                : "bg-(--gold-primary)/10 text-(--gold-primary) hover:bg-(--gold-primary)/20 hover:shadow-[0_0_20px] hover:shadow-(--gold-primary)/40 border border-(--gold-primary)/30"
-            }`}
-            aria-live="polite"
-            type="button"
-          >
-            <div className="flex items-center gap-2 relative z-10">
+          {/* Left Section: Menu (mobile) + Branding */}
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden flex items-center justify-center w-11 h-11 rounded-xl hover:bg-white/5 border border-white/5 hover:border-(--gold-primary)/30 transition-all active:scale-95"
+              aria-label="Toggle sidebar"
+              type="button"
+            >
               <svg
-                className={`w-5 h-5 md:w-6 md:h-6 transition-transform duration-500 ${
-                  theme === "dark" ? "group-hover:rotate-90" : "group-hover:-rotate-12"
+                className="w-5 h-5 text-(--gold-primary)"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+
+            {/* Branding: Logo + Title */}
+            <button
+              onClick={() => router.push("/feed")}
+              className="flex items-center gap-2.5 md:gap-4 group relative shrink-0"
+              aria-label="Go to feed"
+              type="button"
+            >
+              <div className="relative w-12 h-12 md:w-14 md:h-14 flex items-center justify-center group-hover:scale-105 transition-all duration-500">
+                <div className="absolute -inset-1 bg-linear-to-br from-(--gold-primary) to-(--gold-light) opacity-30 blur-xl group-hover:opacity-70 transition-opacity rounded-2xl"></div>
+                <div className="absolute inset-0 rounded-xl bg-white/5 backdrop-blur-sm border border-(--gold-primary)/25 group-hover:border-(--gold-primary)/60 transition-all duration-500"></div>
+                <Image
+                  src="/logo.png"
+                  alt="Confession"
+                  fill
+                  className="object-contain relative z-10 p-1.5 drop-shadow-[0_0_12px_rgba(var(--gold-primary-rgb),0.8)]"
+                  sizes="56px"
+                  priority
+                />
+              </div>
+
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-xl md:text-[28px] font-black tracking-tighter bg-linear-to-r from-(--gold-primary) via-white via-60% to-(--gold-light) bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(var(--gold-primary-rgb),0.25)]">
+                  Confession
+                </span>
+                <span className="hidden sm:flex items-center gap-1.5 mt-1">
+                  <span className="w-1 h-1 rounded-full bg-(--gold-primary) animate-pulse"></span>
+                  <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                    by SA Studios
+                  </span>
+                </span>
+              </div>
+
+              <div className="absolute -bottom-1.5 left-12 md:left-14 h-[2px] w-0 bg-linear-to-r from-(--gold-primary) via-(--gold-light) to-transparent group-hover:w-[70%] transition-all duration-500"></div>
+            </button>
+          </div>
+
+          {/* Center Spacer */}
+          <div className="flex-1" />
+
+          {/* Middle: Live Counter */}
+          <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-md group/counter hover:border-(--gold-primary)/20 transition-all duration-300">
+            <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-(--gold-primary)/10 border border-(--gold-primary)/20">
+              <Globe className="w-4 h-4 text-(--gold-primary) animate-pulse" />
+              <div className="absolute inset-0 rounded-xl bg-(--gold-primary)/10 blur-md animate-ping"></div>
+            </div>
+            <div className="flex flex-col leading-tight pr-1">
+              <span className="text-[8px] md:text-[9px] font-black text-zinc-500 uppercase tracking-[0.18em]">
+                Live Whispers
+              </span>
+              <span className="text-sm md:text-[15px] font-black text-white tabular-nums tracking-tight">
+                {totalPostsCount.toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Right Section: Grouped Actions */}
+          <div className="flex items-center gap-1.5 md:gap-2 ml-2 md:ml-6 p-1 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-sm">
+            {/* Notifications */}
+            <div className="relative">
+              <button
+                onClick={() => setOpenDrawer?.(!notifications.openDrawer)}
+                className="alert-btn relative w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl hover:bg-white/[0.07] transition-all duration-200 active:scale-95 group/notif"
+                aria-label="Notifications"
+                type="button"
+              >
+                <Bell className={`w-[18px] h-[18px] md:w-5 md:h-5 text-zinc-400 group-hover/notif:text-white transition-colors ${notificationCount > 0 ? "text-(--gold-primary) animate-[wiggle_1s_ease-in-out_infinite]" : ""}`} />
+              </button>
+              {notificationCount > 0 && (
+                <span className="notification-badge absolute -top-0.5 -right-0.5 !w-auto !min-w-[18px] h-[18px] px-1 text-[9px] font-black">
+                  {notificationCount > 99 ? "99+" : notificationCount}
+                </span>
+              )}
+            </div>
+
+            <div className="w-px h-6 bg-white/5 mx-0.5"></div>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`relative w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl transition-all duration-300 active:scale-95 group/theme overflow-hidden ${
+                theme === "light"
+                  ? "bg-zinc-900 text-white hover:bg-black hover:shadow-[0_0_20px_rgba(0,0,0,0.25)]"
+                  : "text-zinc-400 hover:text-(--gold-primary) hover:bg-(--gold-primary)/[0.08]"
+              }`}
+              aria-live="polite"
+              type="button"
+              title={theme === "light" ? "Switch to Pitch Black" : "Switch to Light Mode"}
+            >
+              <svg
+                className={`w-[18px] h-[18px] md:w-5 md:h-5 transition-transform duration-500 ${
+                  theme === "dark" ? "group-hover/theme:rotate-90" : "group-hover/theme:-rotate-12"
                 }`}
                 viewBox="0 0 24 24"
                 fill="none"
@@ -233,51 +278,34 @@ export default function Navbar() {
                   </>
                 )}
               </svg>
-              <span className="hidden md:inline font-bold tracking-tight">
-                {theme === "light" ? "Pitch Black" : "Light Mode"}
-              </span>
-            </div>
-          </button>
-          <button
-            onClick={handleLogout}
-            className="logout-btn relative min-w-11 min-h-11 flex items-center justify-center p-2 rounded-xl transition-all duration-200 active:scale-95 text-[#ff0033] hover:bg-[#ff0033]/10 hover:shadow-[0_0_20px_rgba(255,0,51,0.6)] group"
-            type="button"
-          >
-            <svg
-              className="w-5 h-5 md:w-6 md:h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-            <span className="hidden md:inline ml-2">Logout</span>
-          </button>
-        </div>
-
-        {/* Right: Notifications (Desktop Only) */}
-        <div className="hidden md:flex items-center gap-2 ml-6">
-          <div className="relative">
-            <button
-              onClick={() => setOpenDrawer?.(!notifications.openDrawer)}
-              className="alert-btn relative p-2 hover:bg-white/5 rounded-xl transition border border-transparent hover:border-white/10"
-              aria-label="Notifications"
-              type="button"
-            >
-              <Bell className={`w-5 h-5 ${notificationCount > 0 ? "text-(--gold-primary) animate-[wiggle_1s_ease-in-out_infinite]" : ""}`} />
             </button>
-            {notificationCount > 0 && (
-              <span className="notification-badge absolute -top-2 -right-2">
-                {notificationCount > 99 ? "99+" : notificationCount}
-              </span>
-            )}
+
+            <div className="w-px h-6 bg-white/5 mx-0.5"></div>
+
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="logout-btn relative w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl transition-all duration-200 active:scale-95 text-zinc-400 hover:text-[#ff0033] hover:bg-[#ff0033]/[0.08] group/logout"
+              type="button"
+              title="Logout"
+            >
+              <svg
+                className="w-[18px] h-[18px] md:w-5 md:h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+            </button>
           </div>
         </div>
+
         {showThemeNotice && (
           <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80 backdrop-blur-2xl animate-fadeIn">
             {/* Ambient Background Glow */}
@@ -313,7 +341,7 @@ export default function Navbar() {
 
       {/* SIDEBAR - Responsive (Mobile Slide-out, Desktop Fixed) */}
       <aside
-        className={`fixed left-0 top-16 w-64 h-[calc(100vh-64px)] bg-black/40 backdrop-blur-xl border-r border-(--gold-primary)/15 transition-transform duration-300 z-40 flex flex-col overflow-y-auto ${
+        className={`fixed left-0 top-[72px] md:top-20 w-64 h-[calc(100vh-72px)] md:h-[calc(100vh-80px)] bg-black/40 backdrop-blur-xl border-r border-(--gold-primary)/15 transition-transform duration-300 z-40 flex flex-col overflow-y-auto ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
         onMouseEnter={handleSidebarInteraction}

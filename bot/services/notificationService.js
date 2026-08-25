@@ -36,8 +36,8 @@ async function sendNotificationToUsers(title, body, data = {}) {
         notification: {
           title,
           body,
-          icon: '/logoemesis.png',
-          badge: '/logoemesis.png',
+          icon: '/logo.png',
+          badge: '/logo.png',
           tag: 'emesis-notification',
           requireInteraction: false,
         },
@@ -127,8 +127,8 @@ async function sendLikeNotification(postAuthorId, botName) {
           notification: {
             title,
             body,
-            icon: '/logoemesis.png',
-            badge: '/logoemesis.png',
+            icon: '/logo.png',
+            badge: '/logo.png',
           },
         },
       });

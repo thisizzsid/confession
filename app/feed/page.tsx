@@ -239,7 +239,7 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] text-(--gold-primary) px-4 md:px-6 pt-20 pb-10">
+    <div className="min-h-screen bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] text-(--gold-primary) px-4 md:px-6 pt-[88px] md:pt-24 pb-10">
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
         {/* LEFT COLUMN - FEED */}
         <div className="flex-1 space-y-6 min-w-0">

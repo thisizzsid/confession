@@ -19,8 +19,6 @@ import {
 import { db, auth, getFirebaseApp } from "@/firebase";
 import {
   addDoc,
-  and,
-  arrayRemove,
   arrayUnion,
   collection,
   doc,
@@ -222,24 +220,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const requestPermission = useCallback(async () => {
-    if (typeof window === "undefined") return false;
-    if (!("Notification" in window)) return false;
-    try {
-      const perm = await Notification.requestPermission();
-      if (perm === "granted") {
-        setEnabled(true);
-        try {
-          await attemptRegisterFCM();
-        } catch {}
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  }, [attemptRegisterFCM]);
-
   const attemptRegisterFCM = useCallback(async () => {
     if (typeof window === "undefined" || !uid || !db) return;
     const user = auth?.currentUser;
@@ -313,6 +293,24 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       console.warn("FCM setup error:", e);
     }
   }, [uid, showBrowserNotification, pushToast, upsertInAppItem]);
+
+  const requestPermission = useCallback(async () => {
+    if (typeof window === "undefined") return false;
+    if (!("Notification" in window)) return false;
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm === "granted") {
+        setEnabled(true);
+        try {
+          await attemptRegisterFCM();
+        } catch {}
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }, [attemptRegisterFCM]);
 
   // Expose firestorePush globally so comment/like/etc flows can call it WITHOUT re-importing
   useEffect(() => {
@@ -547,7 +545,7 @@ function NotificationToast() {
   if (!ctx || !ctx.toast) return null;
   const n = ctx.toast;
   return (
-    <div className="fixed top-20 right-4 z-[120] w-[min(92vw,420px)] animate-slideInUp">
+    <div className="fixed top-[88px] md:top-24 right-4 z-[120] w-[min(92vw,420px)] animate-slideInUp">
       <div className="glass-card border border-(--gold-primary)/20 rounded-2xl p-4 flex items-start gap-3 shadow-2xl">
         <div className="shrink-0 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
           {typeToIcon(n.type)}
@@ -591,7 +589,7 @@ function NotificationDrawer() {
         />
       )}
       <aside
-        className={`fixed right-0 top-16 h-[calc(100dvh-64px)] w-full md:w-[420px] z-[95] glass border-l border-white/10 overflow-y-auto transform transition-transform duration-300 ${
+        className={`fixed right-0 top-[72px] md:top-20 h-[calc(100dvh-72px)] md:h-[calc(100dvh-80px)] w-full md:w-[420px] z-[95] glass border-l border-white/10 overflow-y-auto transform transition-transform duration-300 ${
           openDrawer ? "translate-x-0" : "translate-x-full"
         }`}
       >

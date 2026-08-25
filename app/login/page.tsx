@@ -219,10 +219,10 @@ function LoginContent() {
           
           <div className="relative z-10">
             <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--dark-card) to-black border border-(--gold-primary)/30 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                <Image src="/logoemesis.png" alt="Logo" width={28} height={28} className="object-contain" />
+              <div className="relative w-20 h-20 rounded-2xl bg-linear-to-br from-(--dark-card) to-black border border-(--gold-primary)/30 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform overflow-hidden">
+                <div className="absolute inset-0 bg-linear-to-r from-(--gold-primary)/15 to-(--gold-light)/10 opacity-50 blur-xl"></div>
+                <Image src="/logo.png" alt="Logo" width={56} height={56} className="object-contain relative z-10 drop-shadow-[0_0_20px_rgba(var(--gold-primary-rgb),0.6)]" priority />
               </div>
-              <span className="text-2xl font-black tracking-tighter text-white font-[Orbitron]">Confession</span>
             </Link>
 
             <div className="mt-20 space-y-8">
@@ -280,9 +280,10 @@ function LoginContent() {
           className="w-full lg:w-[480px] flex flex-col p-8 md:p-12 bg-black/40"
         >
           {/* Mobile Logo */}
-          <div className="lg:hidden flex justify-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-(--dark-card) to-black border border-(--gold-primary)/30 flex items-center justify-center shadow-xl">
-              <Image src="/logoemesis.png" alt="Confession Logo" width={32} height={32} className="object-contain" />
+          <div className="lg:hidden flex justify-center mb-10">
+            <div className="relative w-28 h-28 rounded-3xl bg-linear-to-br from-(--dark-card) to-black border border-(--gold-primary)/40 flex items-center justify-center shadow-2xl overflow-hidden">
+              <div className="absolute inset-0 bg-linear-to-r from-(--gold-primary)/20 to-(--gold-light)/15 opacity-60 blur-xl"></div>
+              <Image src="/logo.png" alt="Confession Logo" width={84} height={84} className="object-contain relative z-10 drop-shadow-[0_0_25px_rgba(var(--gold-primary-rgb),0.7)]" priority />
             </div>
           </div>
 
