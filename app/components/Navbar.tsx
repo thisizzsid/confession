@@ -10,6 +10,18 @@ import { Bell, Home, Compass, LayoutDashboard, User, MessageCircle, LogOut, Sun,
 import { collection, onSnapshot, Firestore } from "firebase/firestore";
 import { db } from "@/firebase";
 
+const LOCAL_RADIUS_KM = 2;
+
+const distanceInKm = (latitudeA: number, longitudeA: number, latitudeB: number, longitudeB: number) => {
+  const earthRadiusKm = 6371;
+  const radians = (degrees: number) => (degrees * Math.PI) / 180;
+  const latitudeDelta = radians(latitudeB - latitudeA);
+  const longitudeDelta = radians(longitudeB - longitudeA);
+  const value = Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(radians(latitudeA)) * Math.cos(radians(latitudeB)) * Math.sin(longitudeDelta / 2) ** 2;
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+};
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -22,12 +34,31 @@ export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCollabToast, setShowCollabToast] = useState(false);
   const [totalPostsCount, setTotalPostsCount] = useState(0);
+  const [nearbyPostsCount, setNearbyPostsCount] = useState<number | null>(null);
   const sidebarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!db) return;
     const unsub = onSnapshot(collection(db as Firestore, "posts"), (snap) => {
-      setTotalPostsCount(snap.size);
+      const posts = snap.docs.map((post) => post.data());
+      setTotalPostsCount(posts.length);
+
+      const updateNearbyCount = (position: GeolocationPosition) => {
+        const { latitude, longitude } = position.coords;
+        const nearby = posts.filter((post) =>
+          typeof post.latitude === "number" &&
+          typeof post.longitude === "number" &&
+          distanceInKm(latitude, longitude, post.latitude, post.longitude) <= LOCAL_RADIUS_KM
+        );
+        setNearbyPostsCount(nearby.length);
+      };
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(updateNearbyCount, () => setNearbyPostsCount(null), {
+          maximumAge: 300000,
+          timeout: 5000,
+        });
+      }
     });
     return () => unsub();
   }, []);
@@ -197,10 +228,10 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col leading-tight pr-1">
               <span className="text-[8px] md:text-[9px] font-black text-zinc-500 uppercase tracking-[0.18em]">
-                Live Whispers
+                {nearbyPostsCount === null ? "Live Whispers" : "Nearby Whispers"}
               </span>
               <span className="text-sm md:text-[15px] font-black text-white tabular-nums tracking-tight">
-                {totalPostsCount.toLocaleString()}
+                {(nearbyPostsCount ?? totalPostsCount).toLocaleString()}
               </span>
             </div>
           </div>

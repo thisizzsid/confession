@@ -12,6 +12,7 @@ import {
   where,
 } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Mic, MicOff, Phone, PhoneOff, Video, VideoOff } from "lucide-react";
 import { db } from "../../firebase";
 
@@ -82,6 +83,7 @@ export default function CallControls({
   const [cameraOff, setCameraOff] = useState(false);
   const [error, setError] = useState("");
   const [remoteStreamReady, setRemoteStreamReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const callIdRef = useRef<string | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -243,6 +245,11 @@ export default function CallControls({
   };
 
   useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  useEffect(() => {
     if (!db || !localUid || !remoteUid || remoteUid === "ai") return;
     const incomingQuery = query(
       collection(db as Firestore, "calls"),
@@ -300,7 +307,7 @@ export default function CallControls({
         </button>
       </div>
 
-      {incomingCall && (
+      {mounted && incomingCall && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md">
           <div className="w-full max-w-sm rounded-3xl border border-(--gold-primary)/25 bg-(--dark-card) p-6 text-center shadow-2xl shadow-black/30">
             <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-(--gold-primary)/10 text-(--gold-primary)">
@@ -314,15 +321,15 @@ export default function CallControls({
               <button type="button" onClick={acceptCall} className="rounded-xl bg-(--gold-primary) px-5 py-3 font-semibold text-black hover:bg-(--gold-light)">Accept</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {callState !== "idle" && (
+      {mounted && callState !== "idle" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
           <div className="relative h-full w-full overflow-hidden bg-black sm:h-auto sm:max-h-[90dvh] sm:max-w-lg sm:rounded-3xl sm:border sm:border-white/10 sm:bg-(--dark-card) sm:p-4 sm:shadow-2xl">
             <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between bg-linear-to-b from-black/70 to-transparent p-5 pb-12 sm:relative sm:bg-transparent sm:p-2 sm:pb-4">
               <div>
-                <p className="text-[10px] uppercase tracking-widest text-(--gold-primary)">{callState === "calling" ? "Calling" : "Connected"}</p>
                 <h3 className="text-lg font-bold text-white sm:text-xl">{remoteName}</h3>
               </div>
               <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-300">{callType}</span>
@@ -340,7 +347,8 @@ export default function CallControls({
               <button type="button" onClick={hangUp} className="rounded-full bg-red-500 p-4 text-white shadow-lg shadow-red-500/30 hover:bg-red-600" aria-label="End call" title="End call"><PhoneOff className="h-5 w-5" /></button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

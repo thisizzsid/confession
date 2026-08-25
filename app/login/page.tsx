@@ -26,10 +26,10 @@ const itemVariants = {
 
 function AnimatedLogo() {
   return (
-    <div className="auth-loader" aria-label="Confession logo" role="img">
+    <div className="loader" aria-label="Confession logo" role="img">
       <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
         <defs>
-          <mask id="auth-clipping">
+          <mask id="clipping">
             <polygon points="0,0 100,0 100,100 0,100" fill="black" />
             <polygon points="25,25 75,25 50,75" fill="white" />
             <polygon points="50,25 75,75 25,75" fill="white" />
@@ -40,7 +40,7 @@ function AnimatedLogo() {
           </mask>
         </defs>
       </svg>
-      <div className="auth-loader-box" />
+      <div className="box" />
     </div>
   );
 }
