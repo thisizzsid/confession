@@ -1,11 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
 /* Brand grid background utility for login page */
 .bg-brand-grid {
   background-image: linear-gradient(rgba(var(--gold-primary-rgb), 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--gold-primary-rgb), 0.3) 1px, transparent 1px);
   background-size: 50px 50px;
 }
-@import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+.accent-theme-f5c26b { --gold-primary: #F5C26B; }
+.accent-theme-ff8a00 { --gold-primary: #FF8A00; }
+.accent-theme-4ade80 { --gold-primary: #4ADE80; }
+.accent-theme-60a5fa { --gold-primary: #60A5FA; }
+.accent-theme-a78bfa { --gold-primary: #A78BFA; }
+.accent-theme-f472b6 { --gold-primary: #F472B6; }
+.accent-swatch-f5c26b { background-color: #F5C26B; }
+.accent-swatch-ff8a00 { background-color: #FF8A00; }
+.accent-swatch-4ade80 { background-color: #4ADE80; }
+.accent-swatch-60a5fa { background-color: #60A5FA; }
+.accent-swatch-a78bfa { background-color: #A78BFA; }
+.accent-swatch-f472b6 { background-color: #F472B6; }
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -20,42 +33,42 @@ img, video {
   display: block; /* Remove bottom space */
 }
 
-/* === ULTRA MODERN FUTURISTIC BRAND COLORS === */
+/* === Minimal charcoal and sage theme === */
 :root {
-  --gold-primary: #F5C26B;
-  --gold-primary-rgb: 245, 194, 107;
-  --gold-secondary: #F4BC4B;
-  --gold-secondary-rgb: 244, 188, 75;
-  --gold-light: #FFD56A;
-  --gold-light-rgb: 255, 213, 106;
-  --gold-glow: rgba(var(--gold-primary-rgb), 0.6);
-  --gold-bright: #FFE89E;
-  --text-main: #FAFAFA;
-  --dark-base: #000000;
-  --dark-card: #121212;
-  --dark-elevated: #1A1A1A;
-  --dark-border: #2A2A2A;
-  --neon-blue: #00F0FF;
-  --neon-purple: #B24BF3;
-  --neon-pink: #FF006E;
-  --neon-green: #39FF14;
+  --gold-primary: #B8C4B0;
+  --gold-primary-rgb: 184, 196, 176;
+  --gold-secondary: #A6B39F;
+  --gold-secondary-rgb: 166, 179, 159;
+  --gold-light: #D7DFD0;
+  --gold-light-rgb: 215, 223, 208;
+  --gold-glow: rgba(var(--gold-primary-rgb), 0.28);
+  --gold-bright: #E7EDE2;
+  --text-main: #F1F3EF;
+  --dark-base: #141715;
+  --dark-card: #1B1F1C;
+  --dark-elevated: #242A25;
+  --dark-border: #343B35;
+  --neon-blue: #91AAA0;
+  --neon-purple: #A39DAF;
+  --neon-pink: #C39BA5;
+  --neon-green: #AFC5A5;
 
   --background: var(--dark-base);
   --foreground: var(--text-main);
   --accent: var(--gold-primary);
-  --glass-bg: rgba(12, 12, 12, 0.6);
-  --glass-border: rgba(var(--gold-primary-rgb), 0.15);
-  --glass-highlight: rgba(var(--gold-primary-rgb), 0.08);
+  --glass-bg: rgba(27, 31, 28, 0.72);
+  --glass-border: rgba(215, 223, 208, 0.12);
+  --glass-highlight: rgba(215, 223, 208, 0.06);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: var(--dark-base);
-    --foreground: var(--gold-primary);
+    --foreground: var(--text-main);
     --accent: var(--gold-primary);
-    --glass-bg: rgba(12, 12, 12, 0.6);
-    --glass-border: rgba(var(--gold-primary-rgb), 0.15);
-    --glass-highlight: rgba(var(--gold-primary-rgb), 0.08);
+    --glass-bg: rgba(27, 31, 28, 0.72);
+    --glass-border: rgba(215, 223, 208, 0.12);
+    --glass-highlight: rgba(215, 223, 208, 0.06);
   }
 }
 
@@ -84,12 +97,12 @@ img, video {
     --gold-bright: #FFFFFF;
   }
 
-/* === ULTRA MODERN BODY === */
+/* === Base theme === */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   font-weight: 400;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -101,7 +114,7 @@ body {
   will-change: scroll-position;
   backface-visibility: hidden;
   overflow-y: hidden; /* prevent double scroll; main handles scrolling */
-  transition: background-color 0.6s ease, color 0.6s ease;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 body::-webkit-scrollbar {
@@ -315,6 +328,169 @@ h1 {
 .glass-card {
   background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
   border: 1px solid rgba(255,255,255,0.06);
-  backdrop-filter: blur(22px) saturate(160%);
   -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+}
+
+.auth-logo-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 7rem;
+  height: 7rem;
+  transition: transform 300ms ease;
+}
+
+.auth-logo-shell-mobile {
+  width: 8rem;
+  height: 8rem;
+}
+
+.auth-logo {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: invert(1) drop-shadow(0 0 18px rgba(var(--gold-primary-rgb), 0.65));
+  mix-blend-mode: screen;
+  animation: auth-logo-float 5s ease-in-out infinite;
+}
+
+.auth-logo-halo {
+  position: absolute;
+  inset: 18%;
+  border: 1px solid rgba(var(--gold-primary-rgb), 0.45);
+  border-radius: 35%;
+  transform: rotate(12deg);
+  box-shadow: 0 0 30px rgba(var(--gold-primary-rgb), 0.18);
+  animation: auth-logo-orbit 8s linear infinite;
+}
+
+.auth-loader {
+  --auth-loader-one: #ffbf48;
+  --auth-loader-two: #be4a1d;
+  --auth-loader-three: #ffbf4780;
+  --auth-loader-four: #bf4a1d80;
+  --auth-loader-five: #ffbf4740;
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  box-shadow: 0 0 25px 0 var(--auth-loader-three), 0 20px 50px 0 var(--auth-loader-four);
+  animation: auth-loader-colorize 6s ease-in-out infinite;
+}
+
+.auth-loader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border-top: 1px solid var(--auth-loader-one);
+  border-bottom: 1px solid var(--auth-loader-two);
+  background: linear-gradient(180deg, var(--auth-loader-five), var(--auth-loader-four));
+  box-shadow: inset 0 10px 10px 0 var(--auth-loader-three), inset 0 -10px 10px 0 var(--auth-loader-four);
+}
+
+.auth-loader-box {
+  position: relative;
+  z-index: 1;
+  width: 100px;
+  height: 100px;
+  background: transparent;
+}
+
+.auth-loader-box::before,
+.auth-loader-box::after {
+  content: "";
+  position: absolute;
+  inset: 20px;
+  background: linear-gradient(180deg, var(--auth-loader-one) 30%, var(--auth-loader-two) 70%);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  filter: blur(1px);
+}
+
+.auth-loader-box::before {
+  animation: auth-loader-rotation 2s linear infinite reverse;
+}
+
+.auth-loader-box::after {
+  transform: rotate(180deg) scale(0.7);
+  animation: auth-loader-rotation 2s linear infinite;
+}
+
+.auth-loader > svg {
+  position: absolute;
+}
+
+.auth-loader #auth-clipping {
+  filter: contrast(15);
+  animation: auth-loader-roundness 1s linear infinite;
+}
+
+.auth-loader #auth-clipping polygon {
+  filter: blur(7px);
+}
+
+.auth-loader #auth-clipping polygon:nth-child(2) {
+  transform-origin: 75% 25%;
+  transform: rotate(90deg);
+}
+
+.auth-loader #auth-clipping polygon:nth-child(3),
+.auth-loader #auth-clipping polygon:nth-child(7) {
+  transform-origin: 50% 50%;
+  animation: auth-loader-rotation 2s linear infinite reverse;
+}
+
+.auth-loader #auth-clipping polygon:nth-child(4),
+.auth-loader #auth-clipping polygon:nth-child(6) {
+  transform-origin: 50% 60%;
+  animation: auth-loader-rotation 2s linear infinite;
+}
+
+.auth-loader #auth-clipping polygon:nth-child(5) {
+  transform-origin: 40% 40%;
+  animation: auth-loader-rotation 2s linear infinite reverse;
+  animation-delay: -1s;
+}
+
+@keyframes auth-loader-rotation {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes auth-loader-roundness {
+  0%, 60%, 100% { filter: contrast(15); }
+  20%, 40% { filter: contrast(3); }
+}
+
+@keyframes auth-loader-colorize {
+  0%, 100% { filter: hue-rotate(0deg); }
+  20% { filter: hue-rotate(-30deg); }
+  40% { filter: hue-rotate(-60deg); }
+  60% { filter: hue-rotate(-90deg); }
+  80% { filter: hue-rotate(-45deg); }
+}
+
+@keyframes auth-logo-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(1deg); }
+}
+
+@keyframes auth-logo-orbit {
+  from { transform: rotate(12deg) scale(0.94); }
+  50% { transform: rotate(192deg) scale(1.06); }
+  to { transform: rotate(372deg) scale(0.94); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-logo,
+  .auth-logo-halo {
+    animation: none;
+  }
+
+  .auth-loader,
+  .auth-loader #auth-clipping,
+  .auth-loader #auth-clipping polygon {
+    animation: none;
+  }
 }

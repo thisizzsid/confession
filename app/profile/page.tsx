@@ -15,7 +15,7 @@ import {
   Timestamp,
   Firestore,
 } from "firebase/firestore";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -53,6 +53,15 @@ const ACCENT_PRESETS = [
   "#A78BFA",
   "#F472B6",
 ];
+
+const ACCENT_THEME_CLASSES: Record<string, string> = {
+  "#F5C26B": "accent-theme-f5c26b",
+  "#FF8A00": "accent-theme-ff8a00",
+  "#4ADE80": "accent-theme-4ade80",
+  "#60A5FA": "accent-theme-60a5fa",
+  "#A78BFA": "accent-theme-a78bfa",
+  "#F472B6": "accent-theme-f472b6",
+};
 
 const EMPTY_STATS: Stats = {
   postsPerDay: Array(7).fill(0),
@@ -159,7 +168,7 @@ const DetailRow = ({
 
 /* -------------------------------- Page ---------------------------------- */
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
 
@@ -462,8 +471,7 @@ export default function ProfilePage() {
 
   return (
     <div
-      className="flex min-h-screen flex-col items-center bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] px-4 py-10 text-(--gold-primary) sm:px-6 md:px-6 md:py-16"
-      style={accentColor ? ({ "--gold-primary": accentColor } as React.CSSProperties) : undefined}
+      className={`flex min-h-screen flex-col items-center bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] px-4 py-10 text-(--gold-primary) sm:px-6 md:px-6 md:py-16 ${accentColor ? ACCENT_THEME_CLASSES[accentColor] || "" : ""}`}
     >
       <div className="w-full max-w-5xl animate-fadeIn">
         {/* Hero */}
@@ -593,11 +601,9 @@ export default function ProfilePage() {
                 <button
                   key={hex}
                   aria-label={`Set accent color ${hex}`}
-                  aria-pressed={accentColor === hex}
                   onClick={() => saveAccentColor(hex)}
                   type="button"
-                  style={{ backgroundColor: hex }}
-                  className={`h-9 w-9 rounded-full border transition-transform hover:scale-110 active:scale-95 ${
+                  className={`accent-swatch-${hex.slice(1).toLowerCase()} h-9 w-9 rounded-full border transition-transform hover:scale-110 active:scale-95 ${
                     accentColor === hex ? "ring-2 ring-white/80" : "border-white/20"
                   }`}
                 />
@@ -645,5 +651,13 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <ProfileContent />
+    </Suspense>
   );
 }

@@ -1,4 +1,6 @@
 import * as admin from 'firebase-admin';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 // Interface for the service account object
 interface ServiceAccount {
@@ -22,11 +24,11 @@ if (!admin.apps.length) {
     }
 
     // 2. Try local file (development/fallback)
-    // We use dynamic require to avoid build-time resolution issues if file is missing
     if (!serviceAccount) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        serviceAccount = require('../serviceAccountKey.json');
+        serviceAccount = JSON.parse(
+          readFileSync(join(process.cwd(), 'serviceAccountKey.json'), 'utf8')
+        ) as ServiceAccount;
       } catch (e) {
         // File not found or invalid, ignore
       }

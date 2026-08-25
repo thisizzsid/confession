@@ -28,14 +28,13 @@ import {
   Camera, 
   Mic, 
   MoreVertical,
-  Phone,
-  Video,
   Info
 } from "lucide-react";
 import Toast from "../../components/Toast";
 import { cn } from "@/app/lib/utils";
 
 import { TypingIndicator, MessageStatusIcon } from "../../components/ChatUI";
+import CallControls from "../../components/CallControls";
 
 export default function ChatRoom({ params }: { params: any }) {
   const { user, logout } = useAuth();
@@ -326,12 +325,12 @@ export default function ChatRoom({ params }: { params: any }) {
 
         {/* Actions */}
         <div className="flex items-center gap-1">
-          <button className="p-2 rounded-full hover:bg-zinc-800/50 text-zinc-400 hover:text-white transition-colors hidden md:block" aria-label="Call">
-            <Phone className="w-5 h-5" />
-          </button>
-          <button className="p-2 rounded-full hover:bg-zinc-800/50 text-zinc-400 hover:text-white transition-colors hidden md:block" aria-label="Video Call">
-            <Video className="w-5 h-5" />
-          </button>
+          <CallControls
+            chatId={id}
+            localUid={user.uid}
+            remoteUid={partnerUid}
+            remoteName={otherUser?.username || "User"}
+          />
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 rounded-full hover:bg-zinc-800/50 text-zinc-400 hover:text-white transition-colors"

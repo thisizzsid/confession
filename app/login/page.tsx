@@ -24,6 +24,27 @@ const itemVariants = {
   visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } }
 };
 
+function AnimatedLogo() {
+  return (
+    <div className="auth-loader" aria-label="Confession logo" role="img">
+      <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <mask id="auth-clipping">
+            <polygon points="0,0 100,0 100,100 0,100" fill="black" />
+            <polygon points="25,25 75,25 50,75" fill="white" />
+            <polygon points="50,25 75,75 25,75" fill="white" />
+            <polygon points="35,35 65,35 50,65" fill="white" />
+            <polygon points="35,35 65,35 50,65" fill="white" />
+            <polygon points="35,35 65,35 50,65" fill="white" />
+            <polygon points="35,35 65,35 50,65" fill="white" />
+          </mask>
+        </defs>
+      </svg>
+      <div className="auth-loader-box" />
+    </div>
+  );
+}
+
 function LoginContent() {
   const { googleLogin, loginWithEmail, signupWithEmail, resetPassword, anonymousLogin, user } = useAuth();
   const router = useRouter();
@@ -38,15 +59,12 @@ function LoginContent() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
     const m = searchParams.get("mode");
     if (m === "signup") setMode("signup");
   }, [searchParams]);
 
   useEffect(() => {
-    setMounted(true);
     if (user) {
         setLoading(true);
         setTimeout(() => router.push("/feed"), 800);
@@ -59,6 +77,8 @@ function LoginContent() {
     if (!c) return;
     const ctx = c.getContext("2d");
     if (!ctx) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let animationFrame = 0;
 
     const resize = () => {
       c.width = window.innerWidth;
@@ -71,7 +91,7 @@ function LoginContent() {
     const goldPrimaryRgb = style.getPropertyValue('--gold-primary-rgb').trim() || "245, 194, 107";
 
     const particles: any[] = [];
-    const count = 80;
+    const count = reducedMotion ? 24 : 80;
 
     for (let i = 0; i < count; i++) {
       particles.push({
@@ -115,11 +135,14 @@ function LoginContent() {
           }
         }
       }
-      requestAnimationFrame(draw);
+      if (!reducedMotion) animationFrame = requestAnimationFrame(draw);
     }
     draw();
 
-    return () => window.removeEventListener("resize", resize);
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener("resize", resize);
+    };
   }, []);
 
   const handleReset = () => {
@@ -205,23 +228,22 @@ function LoginContent() {
       <div className="absolute inset-0 bg-linear-to-br from-black/90 via-black/70 to-black/90 z-0" />
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,color-mix(in_srgb,var(--gold-primary),transparent_98%),transparent_80%)] pointer-events-none" />
       
-      <div className="flex w-full max-w-6xl min-h-[85vh] m-4 md:m-10 relative z-10 glass-card rounded-[40px] border border-white/5 shadow-2xl overflow-hidden backdrop-blur-3xl">
+      <div className="flex w-full max-w-6xl min-h-[calc(100dvh-2rem)] lg:min-h-[85vh] m-2 sm:m-4 md:m-10 relative z-10 glass-card rounded-3xl lg:rounded-[40px] border border-white/5 shadow-2xl overflow-hidden backdrop-blur-3xl">
         
         {/* Left Side: Branding (Desktop Only) */}
         <motion.div 
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="hidden lg:flex flex-1 relative flex-col justify-between p-16 overflow-hidden border-r border-white/5"
+          className="hidden lg:flex flex-1 relative flex-col justify-between p-12 xl:p-16 overflow-hidden border-r border-white/5"
         >
           {/* Animated Gradient Background */}
           <div className="absolute inset-0 bg-linear-to-br from-(--gold-primary)/5 via-transparent to-transparent animate-pulse" />
           
           <div className="relative z-10">
             <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="relative w-20 h-20 rounded-2xl bg-linear-to-br from-(--dark-card) to-black border border-(--gold-primary)/30 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform overflow-hidden">
-                <div className="absolute inset-0 bg-linear-to-r from-(--gold-primary)/15 to-(--gold-light)/10 opacity-50 blur-xl"></div>
-                <Image src="/logo.png" alt="Logo" width={56} height={56} className="object-contain relative z-10 drop-shadow-[0_0_20px_rgba(var(--gold-primary-rgb),0.6)]" priority />
+              <div className="auth-logo-shell group-hover:scale-110">
+                <AnimatedLogo />
               </div>
             </Link>
 
@@ -277,18 +299,17 @@ function LoginContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
-          className="w-full lg:w-[480px] flex flex-col p-8 md:p-12 bg-black/40"
+          className="w-full lg:w-120 flex flex-col p-5 sm:p-8 md:p-12 bg-black/40"
         >
           {/* Mobile Logo */}
-          <div className="lg:hidden flex justify-center mb-10">
-            <div className="relative w-28 h-28 rounded-3xl bg-linear-to-br from-(--dark-card) to-black border border-(--gold-primary)/40 flex items-center justify-center shadow-2xl overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-r from-(--gold-primary)/20 to-(--gold-light)/15 opacity-60 blur-xl"></div>
-              <Image src="/logo.png" alt="Confession Logo" width={84} height={84} className="object-contain relative z-10 drop-shadow-[0_0_25px_rgba(var(--gold-primary-rgb),0.7)]" priority />
+          <div className="lg:hidden flex justify-center mb-6 sm:mb-10">
+            <div className="auth-logo-shell auth-logo-shell-mobile">
+              <AnimatedLogo />
             </div>
           </div>
 
           <div className="mb-8">
-            <h3 className="text-3xl font-black text-white tracking-tight mb-2">
+            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2">
               {mode === 'login' ? 'Welcome Back' : 'Create Account'}
             </h3>
             <p className="text-zinc-500 text-sm">

@@ -89,9 +89,39 @@ service cloud.firestore {
       }
     }
 
-    // Catch-all (Useful for development, but specific rules above take precedence)
+    // WebRTC signaling metadata and ICE candidates. Media stays peer-to-peer.
+    match /calls/{callId} {
+      allow create: if isAuth() && (
+        request.resource.data.callerId == request.auth.uid ||
+        request.resource.data.calleeId == request.auth.uid
+      );
+      allow read: if isAuth() && (
+        resource.data.callerId == request.auth.uid ||
+        resource.data.calleeId == request.auth.uid
+      );
+      allow update: if isAuth() && (
+        resource.data.callerId == request.auth.uid ||
+        resource.data.calleeId == request.auth.uid
+      ) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['offer', 'answer', 'status']);
+
+      match /callerCandidates/{candidateId} {
+        allow read, write: if isAuth() && (
+          get(/databases/$(database)/documents/calls/$(callId)).data.callerId == request.auth.uid ||
+          get(/databases/$(database)/documents/calls/$(callId)).data.calleeId == request.auth.uid
+        );
+      }
+
+      match /calleeCandidates/{candidateId} {
+        allow read, write: if isAuth() && (
+          get(/databases/$(database)/documents/calls/$(callId)).data.callerId == request.auth.uid ||
+          get(/databases/$(database)/documents/calls/$(callId)).data.calleeId == request.auth.uid
+        );
+      }
+    }
+
+    // Deny unspecified collections by default.
     match /{document=**} {
-      allow read, write: if isAuth();
+      allow read, write: if false;
     }
   }
 }
