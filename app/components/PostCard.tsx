@@ -6,9 +6,9 @@ import Link from "next/link";
 import { db } from "../../firebase";
 import { doc, updateDoc, deleteDoc, arrayUnion, arrayRemove, Timestamp, getDoc, Firestore, addDoc, collection } from "firebase/firestore";
 import Comments from "./Comments";
-import { Heart, MessageCircle, Share2, Pencil, Trash2, Smartphone, Monitor, MapPin, Copy, Check } from "lucide-react";
+import { Heart, MessageCircle, Share2, Pencil, Trash2, Smartphone, Monitor, MapPin, Copy, Check, Sparkles } from "lucide-react";
 
-import { extractHashtags } from "../lib/utils";
+import { extractHashtags, cn } from "../lib/utils";
 
 interface PostCardProps {
   post: any;
@@ -30,6 +30,33 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
   const [shareProgress, setShareProgress] = useState(0);
   const shareBtnRef = useRef<HTMLButtonElement | null>(null);
   const shareMenuRef = useRef<HTMLDivElement | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+
+  const analyzeConfession = async () => {
+    if (aiAnalysis) {
+      setAiAnalysis(null);
+      return;
+    }
+    setAnalyzing(true);
+    try {
+      const res = await fetch("/api/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: post.text, mode: "emotion" }),
+      });
+      const data = await res.json();
+      if (data.output) {
+        setAiAnalysis(data.output);
+      } else {
+        alert("Failed to analyze confession. Please try again.");
+      }
+    } catch (err) {
+      console.error("AI analysis error:", err);
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   const like = async () => {
     if (!user || !db) return;
@@ -513,6 +540,20 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
                     <span>{post.commentCount > 0 ? post.commentCount : "Comment"}</span>
                 </button>
 
+                <button
+                    type="button"
+                    onClick={analyzeConfession}
+                    className={cn(
+                      "flex-1 sm:flex-none h-11 px-4 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2",
+                      aiAnalysis
+                        ? "bg-linear-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30"
+                        : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-blue-400 border border-transparent"
+                    )}
+                >
+                    <Sparkles className={cn("w-4 h-4", aiAnalysis ? "animate-pulse text-blue-400" : "")} />
+                    <span>AI Therapist</span>
+                </button>
+
                 <div className="relative flex-1 sm:flex-none">
                     <button
                         type="button"
@@ -556,6 +597,26 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
                     )}
                 </div>
             </div>
+
+            {analyzing && (
+              <div className="mt-4 p-5 rounded-2xl bg-zinc-900/50 border border-zinc-800 animate-pulse flex items-center justify-center gap-3">
+                <div className="w-5 h-5 border-2 border-(--gold-primary) border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs text-zinc-500 font-medium uppercase tracking-widest">Consulting AI Therapist...</span>
+              </div>
+            )}
+
+            {aiAnalysis && (
+              <div className="mt-4 p-5 rounded-2xl bg-linear-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 shadow-lg shadow-blue-500/5 animate-fadeIn relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-blue-500 to-purple-500" />
+                <div className="flex items-center gap-2 mb-2 text-blue-400 font-bold text-xs uppercase tracking-widest">
+                  <Sparkles className="w-4 h-4 animate-pulse text-blue-400" />
+                  <span>AI Therapist Support</span>
+                </div>
+                <p className="text-zinc-200 text-sm leading-relaxed italic">
+                  "{aiAnalysis}"
+                </p>
+              </div>
+            )}
 
             {showComments && (
                 <div className="mt-4 pt-4 border-t border-(--gold-primary)/10 animate-fadeIn">
