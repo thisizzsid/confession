@@ -17,10 +17,20 @@ export default function ClientLayout({
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
+    let shouldShowSplash = false;
+    try {
+      shouldShowSplash = window.localStorage.getItem("confession-splash-seen") !== "true";
+      if (shouldShowSplash) window.localStorage.setItem("confession-splash-seen", "true");
+    } catch {
+      shouldShowSplash = false;
+    }
+
+    if (!shouldShowSplash) return;
+    setShowSplash(true);
     // Start fading out after 2 seconds
     const timer1 = setTimeout(() => {
       setIsFadingOut(true);

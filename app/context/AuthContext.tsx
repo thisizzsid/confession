@@ -190,14 +190,21 @@ export const AuthContextProvider = ({ children }: any) => {
         return;
       }
 
-      await ensureUserProfile(current);
-      if (!db) return;
-      const ref = doc(db as Firestore, "users", current.uid);
-      const snap = await getDoc(ref);
-      const profile = snap.data() || {};
-
-      setUser({ ...current, profile });
-      setLoading(false);
+      try {
+        await ensureUserProfile(current);
+        if (!db) {
+          setUser({ ...current, profile: {} });
+          return;
+        }
+        const ref = doc(db as Firestore, "users", current.uid);
+        const snap = await getDoc(ref);
+        setUser({ ...current, profile: snap.data() || {} });
+      } catch (error) {
+        console.error("Auth profile load error:", error);
+        setUser({ ...current, profile: {} });
+      } finally {
+        setLoading(false);
+      }
     });
 
     return () => unsub();
