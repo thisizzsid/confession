@@ -21,6 +21,21 @@ const AuthContext = createContext<any>(null);
 let recaptcha: RecaptchaVerifier | null = null;
 const ANONYMOUS_SESSION_PAUSED = "confession-anonymous-session-paused";
 
+const restoreViewportAfterSessionChange = async () => {
+  if (typeof document === "undefined") return;
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+  } catch {}
+  try {
+    screen.orientation.unlock();
+  } catch {}
+  document.documentElement.style.removeProperty("overflow");
+  document.body.style.removeProperty("overflow");
+  document.documentElement.style.removeProperty("height");
+  document.body.style.removeProperty("height");
+  window.scrollTo(0, 0);
+};
+
 export const AuthContextProvider = ({ children }: any) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -163,6 +178,7 @@ export const AuthContextProvider = ({ children }: any) => {
   /** Logout **/
   const logout = async () => {
     if (!auth) return;
+    await restoreViewportAfterSessionChange();
     if (auth.currentUser?.isAnonymous) {
       pauseAnonymousSession();
       setUser(null);
