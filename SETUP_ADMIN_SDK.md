@@ -31,3 +31,19 @@ The error occurs because the server (your local machine or Vercel) doesn't have 
 
 ## Step 3: Restart Server
 Stop your local server (Ctrl+C) and run `npm run dev` again. The error should be gone.
+
+## Required Vercel Variables
+For the admin notification panel, add these in Vercel Project Settings -> Environment Variables:
+
+```env
+FIREBASE_SERVICE_ACCOUNT_KEY=<entire service-account JSON value>
+ADMIN_PASSWORD=<strong admin password>
+ADMIN_SESSION_SECRET=<long random session secret>
+MAIL_HOST=<SMTP host>
+MAIL_PORT=465
+MAIL_USER=<SMTP username>
+MAIL_PASS=<SMTP password>
+MAIL_TO=<admin email>
+```
+
+After saving the variables, redeploy. The Firebase web configuration alone cannot authorize the Admin SDK or send FCM messages.

@@ -95,8 +95,15 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("Push notification error:", error);
+    const errorMessage = error?.message || "Internal Server Error";
+    if (errorMessage.includes("Could not load the default credentials") || errorMessage.includes("Firebase Admin")) {
+      return NextResponse.json(
+        { error: "Firebase Admin is not configured. Add FIREBASE_SERVICE_ACCOUNT_KEY in Vercel Environment Variables and redeploy." },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" }, 
+      { error: errorMessage },
       { status: 500 }
     );
   }
