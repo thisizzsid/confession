@@ -398,6 +398,86 @@ body::-webkit-scrollbar-thumb {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Admin console */
+.admin-shell {
+  display: flex;
+  min-height: 100dvh;
+  background-image: radial-gradient(circle at 75% -10%, rgba(184, 196, 176, 0.08), transparent 32rem);
+}
+
+.admin-sidebar {
+  display: flex;
+  flex: 0 0 265px;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+
+.admin-content {
+  min-width: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.admin-page-body {
+  max-width: 1440px;
+}
+
+.admin-login {
+  position: relative;
+  overflow: hidden;
+  background-image: radial-gradient(circle at 50% 0%, rgba(184, 196, 176, 0.11), transparent 32rem);
+}
+
+.admin-login-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  background-image: linear-gradient(rgba(215, 223, 208, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(215, 223, 208, 0.08) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+
+@media (max-width: 900px) {
+  .admin-sidebar {
+    flex-basis: 220px;
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-shell {
+    display: block;
+  }
+
+  .admin-sidebar {
+    min-height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .admin-sidebar > div:first-child {
+    flex: 0 0 auto;
+    padding: 1rem;
+  }
+
+  .admin-sidebar > div:nth-child(2) {
+    padding: 1rem 0;
+  }
+
+  .admin-sidebar > div:nth-child(2) > p,
+  .admin-sidebar > div:last-child {
+    display: none;
+  }
+
+  .admin-sidebar nav {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .admin-sidebar nav button {
+    min-width: 145px;
+  }
+}
+
 .modern-btn {
   background: var(--gold-primary);
   color: #000;
