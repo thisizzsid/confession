@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { AuthContextProvider } from "./context/AuthContext";
 import ClientLayout from "./ClientLayout";
 import { NotificationProvider } from "./components/NotificationSetup";
+import { ThemeProvider } from "./context/ThemeContext";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -55,7 +56,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans antialiased h-dvh flex flex-col relative overflow-hidden">
         <AuthContextProvider>
           <NotificationProvider>
-            <ClientLayout>{children}</ClientLayout>
+            <ThemeProvider>
+              <ClientLayout>{children}</ClientLayout>
+            </ThemeProvider>
           </NotificationProvider>
         </AuthContextProvider>
       </body>

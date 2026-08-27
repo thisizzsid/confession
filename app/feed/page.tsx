@@ -245,11 +245,11 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-black text-(--gold-primary) px-4 md:px-6 pt-[88px] md:pt-24 pb-10 overflow-hidden">
+    <div className="feed-page relative min-h-screen bg-(--background) text-(--foreground) px-4 md:px-6 pt-[88px] md:pt-24 pb-10 overflow-hidden">
 
       {/* AMBIENT BACKGROUND */}
       <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-linear-to-b from-black via-[#0A0A0A] to-black" />
+        <div className="absolute inset-0 bg-linear-to-b from-(--background) via-(--dark-elevated) to-(--background)" />
         <div className="absolute top-[-10%] left-[10%] w-[420px] h-[420px] rounded-full bg-(--gold-primary)/[0.06] blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[5%] w-[380px] h-[380px] rounded-full bg-(--gold-primary)/[0.04] blur-[120px]" />
         <div className="feed-dot-grid absolute inset-0 opacity-[0.025]" />
@@ -297,7 +297,7 @@ export default function FeedPage() {
                   } bg-linear-to-r from-(--gold-primary)/40 via-(--gold-light)/30 to-(--gold-primary)/40`}
                 />
 
-                <div className="relative bg-[#0A0A0A] rounded-3xl border border-zinc-800 group-hover:border-zinc-700 transition-colors duration-300 overflow-hidden">
+                <div className="relative bg-(--dark-card) rounded-3xl border border-(--dark-border) group-hover:border-(--gold-primary) transition-colors duration-300 overflow-hidden">
 
                   <div className="px-6 py-4 border-b border-zinc-800/50 bg-linear-to-r from-zinc-900/40 to-transparent flex items-center justify-between">
                     <div className="flex items-center gap-2.5">

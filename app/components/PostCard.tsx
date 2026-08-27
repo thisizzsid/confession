@@ -315,7 +315,7 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
   }, [shareProgress]);
 
   return (
-    <div className="group relative w-full rounded-3xl bg-[#0a0a0a] border border-white/5 shadow-2xl overflow-hidden transition-all duration-500 hover:shadow-[0_0_40px_-10px_color-mix(in_srgb,var(--gold-primary),transparent_85%)] hover:border-(--gold-primary)/20">
+    <div className="post-card group relative w-full rounded-3xl bg-(--dark-card) border border-(--dark-border) shadow-2xl overflow-hidden transition-all duration-500 hover:shadow-[0_0_40px_-10px_color-mix(in_srgb,var(--gold-primary),transparent_85%)] hover:border-(--gold-primary)/20">
         {/* Subtle background gradient */}
         <div className="absolute inset-0 bg-linear-to-b from-white/2 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         

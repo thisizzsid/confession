@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useNotifications } from "./NotificationSetup";
-import { Bell, Home, Compass, LayoutDashboard, User, MessageCircle, LogOut, Sun, Moon, Handshake, Globe } from "lucide-react";
+import { Bell, Home, Compass, LayoutDashboard, User, MessageCircle, LogOut, Handshake, Globe } from "lucide-react";
 import { collection, onSnapshot, Firestore } from "firebase/firestore";
 import { db } from "@/firebase";
 
@@ -137,39 +137,6 @@ export default function Navbar() {
     if (sidebarTimeoutRef.current) clearTimeout(sidebarTimeoutRef.current);
   };
 
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const [showThemeNotice, setShowThemeNotice] = useState(false);
-  const [targetTheme, setTargetTheme] = useState<"dark" | "light">("dark");
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("theme");
-      const initial = stored === "light" ? "light" : "dark";
-      setTheme(initial);
-      document.documentElement.setAttribute("data-theme", initial);
-    } catch {}
-  }, []);
-
-  const toggleTheme = () => {
-    const next = theme === "light" ? "dark" : "light";
-    setTargetTheme(next);
-    setShowThemeNotice(true);
-    // Removed progress bar logic for a cleaner, faster transition
-    
-    setTimeout(() => {
-      setTheme(next);
-      try {
-        localStorage.setItem("theme", next);
-      } catch {}
-      document.documentElement.setAttribute("data-theme", next);
-    }, 800); // Switch halfway through
-
-    setTimeout(() => {
-      setShowThemeNotice(false);
-    }, 1600);
-  };
-
-
   if (!user) return null;
 
   return (
@@ -265,49 +232,6 @@ export default function Navbar() {
 
             <div className="w-px h-6 bg-white/5 mx-0.5"></div>
 
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className={`relative w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl transition-all duration-300 active:scale-95 group/theme overflow-hidden ${
-                theme === "light"
-                  ? "bg-zinc-900 text-white hover:bg-black hover:shadow-[0_0_20px_rgba(0,0,0,0.25)]"
-                  : "text-zinc-400 hover:text-(--gold-primary) hover:bg-(--gold-primary)/[0.08]"
-              }`}
-              aria-live="polite"
-              type="button"
-              title={theme === "light" ? "Switch to Pitch Black" : "Switch to Light Mode"}
-            >
-              <svg
-                className={`w-[18px] h-[18px] md:w-5 md:h-5 transition-transform duration-500 ${
-                  theme === "dark" ? "group-hover/theme:rotate-90" : "group-hover/theme:-rotate-12"
-                }`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-              >
-                {theme === "light" ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                  />
-                ) : (
-                  <>
-                    <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2" />
-                    <path
-                      d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </>
-                )}
-              </svg>
-            </button>
-
-            <div className="w-px h-6 bg-white/5 mx-0.5"></div>
-
             {/* Logout */}
             <button
               onClick={handleLogout}
@@ -333,37 +257,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {showThemeNotice && (
-          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80 backdrop-blur-2xl animate-fadeIn">
-            {/* Ambient Background Glow */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-(--gold-primary)/15 via-transparent to-transparent opacity-50 animate-pulse"></div>
-            
-            <div className="relative z-10 flex flex-col items-center">
-                {/* Sun / Moon Icon Container */}
-                <div className="mb-12 relative z-10 transition-all duration-1000 transform">
-                    <div className="absolute inset-0 bg-(--gold-primary) blur-[60px] opacity-20 animate-pulse"></div>
-                    <div className="flex items-center justify-center">
-                        {targetTheme === "light" ? (
-                          <div className="animate-spin-slow text-(--gold-primary) drop-shadow-[0_0_50px_rgba(245,194,107,0.8)]">
-                            <Sun className="w-24 h-24 md:w-32 md:h-32" strokeWidth={1} />
-                          </div>
-                        ) : (
-                          <div className="animate-pulse text-zinc-300 drop-shadow-[0_0_50px_rgba(255,255,255,0.5)]">
-                            <Moon className="w-24 h-24 md:w-32 md:h-32" strokeWidth={1} />
-                          </div>
-                        )}
-                    </div>
-                </div>
-                
-                {/* Minimalist Text */}
-                <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-(--gold-primary) via-white to-(--gold-primary) tracking-[0.3em] text-center uppercase animate-pulse mt-8">
-                    {targetTheme === "light" ? "Light Mode" : "Dark Mode"}
-                </h2>
-                
-                <div className="mt-4 h-[1px] w-24 bg-linear-to-r from-transparent via-(--gold-primary) to-transparent opacity-50"></div>
-            </div>
-          </div>
-        )}
       </header>
 
       {/* SIDEBAR - Responsive (Mobile Slide-out, Desktop Fixed) */}

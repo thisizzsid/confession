@@ -97,6 +97,152 @@ img, video {
     --gold-bright: #FFFFFF;
   }
 
+/* === App theme presets === */
+[data-theme="doodle"] {
+  --background: #fff8ec;
+  --foreground: #302a25;
+  --accent: #e47752;
+  --gold-primary: #e47752;
+  --gold-primary-rgb: 228, 119, 82;
+  --gold-secondary: #c95d3d;
+  --gold-light: #f4b183;
+  --gold-light-rgb: 244, 177, 131;
+  --gold-glow: rgba(228, 119, 82, 0.22);
+  --gold-bright: #a94e34;
+  --text-main: #302a25;
+  --dark-base: #fff8ec;
+  --dark-card: #fffdf7;
+  --dark-elevated: #fff1dc;
+  --dark-border: #ead7bf;
+  --glass-bg: rgba(255, 253, 247, 0.82);
+  --glass-border: rgba(228, 119, 82, 0.2);
+  --glass-highlight: rgba(255, 255, 255, 0.7);
+  --muted-text: #665d56;
+  --subtle-text: #887b70;
+}
+
+[data-theme="minimalist"] {
+  --background: #f2f2f0;
+  --foreground: #20211f;
+  --accent: #20211f;
+  --gold-primary: #20211f;
+  --gold-primary-rgb: 32, 33, 31;
+  --gold-secondary: #555752;
+  --gold-light: #777a74;
+  --gold-light-rgb: 119, 122, 116;
+  --gold-glow: rgba(32, 33, 31, 0.12);
+  --gold-bright: #000000;
+  --text-main: #20211f;
+  --dark-base: #f2f2f0;
+  --dark-card: #ffffff;
+  --dark-elevated: #e8e8e5;
+  --dark-border: #d6d6d1;
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(32, 33, 31, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.8);
+  --muted-text: #5d605b;
+  --subtle-text: #777a74;
+}
+
+[data-theme="plain"] {
+  --background: #ffffff;
+  --foreground: #171717;
+  --accent: #171717;
+  --gold-primary: #171717;
+  --gold-primary-rgb: 23, 23, 23;
+  --gold-secondary: #404040;
+  --gold-light: #737373;
+  --gold-light-rgb: 115, 115, 115;
+  --gold-glow: rgba(23, 23, 23, 0.1);
+  --gold-bright: #000000;
+  --text-main: #171717;
+  --dark-base: #ffffff;
+  --dark-card: #ffffff;
+  --dark-elevated: #f5f5f5;
+  --dark-border: #e5e5e5;
+  --glass-bg: rgba(255, 255, 255, 0.94);
+  --glass-border: rgba(23, 23, 23, 0.1);
+  --glass-highlight: rgba(23, 23, 23, 0.03);
+  --muted-text: #525252;
+  --subtle-text: #737373;
+}
+
+[data-theme="doodle"] body {
+  background-image: radial-gradient(rgba(228, 119, 82, 0.1) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+[data-theme="doodle"] .glass,
+[data-theme="minimalist"] .glass,
+[data-theme="plain"] .glass {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  box-shadow: 0 10px 30px rgba(32, 33, 31, 0.05);
+}
+
+[data-theme="doodle"] .text-white,
+[data-theme="minimalist"] .text-white,
+[data-theme="plain"] .text-white {
+  color: var(--foreground) !important;
+}
+
+[data-theme="doodle"] header .bg-black\/40,
+[data-theme="minimalist"] header .bg-black\/40,
+[data-theme="plain"] header .bg-black\/40,
+[data-theme="doodle"] aside,
+[data-theme="minimalist"] aside,
+[data-theme="plain"] aside {
+  background: var(--glass-bg);
+}
+
+[data-theme="doodle"] .feed-page,
+[data-theme="minimalist"] .feed-page,
+[data-theme="plain"] .feed-page {
+  background: var(--background);
+}
+
+[data-theme="doodle"] .feed-page .text-zinc-400,
+[data-theme="doodle"] .feed-page .text-zinc-500,
+[data-theme="doodle"] .feed-page .text-zinc-600,
+[data-theme="doodle"] .feed-page .text-zinc-700,
+[data-theme="doodle"] .post-card .text-zinc-200,
+[data-theme="doodle"] .post-card .text-zinc-300,
+[data-theme="minimalist"] .feed-page .text-zinc-400,
+[data-theme="minimalist"] .feed-page .text-zinc-500,
+[data-theme="minimalist"] .feed-page .text-zinc-600,
+[data-theme="minimalist"] .feed-page .text-zinc-700,
+[data-theme="minimalist"] .post-card .text-zinc-200,
+[data-theme="minimalist"] .post-card .text-zinc-300,
+[data-theme="plain"] .feed-page .text-zinc-400,
+[data-theme="plain"] .feed-page .text-zinc-500,
+[data-theme="plain"] .feed-page .text-zinc-600,
+[data-theme="plain"] .feed-page .text-zinc-700,
+[data-theme="plain"] .post-card .text-zinc-200,
+[data-theme="plain"] .post-card .text-zinc-300 {
+  color: var(--muted-text) !important;
+}
+
+[data-theme="doodle"] .feed-page .bg-zinc-950,
+[data-theme="doodle"] .feed-page .bg-zinc-900,
+[data-theme="minimalist"] .feed-page .bg-zinc-950,
+[data-theme="minimalist"] .feed-page .bg-zinc-900,
+[data-theme="plain"] .feed-page .bg-zinc-950,
+[data-theme="plain"] .feed-page .bg-zinc-900 {
+  background: var(--dark-elevated) !important;
+}
+
+[data-theme="doodle"] .feed-page .border-zinc-800,
+[data-theme="minimalist"] .feed-page .border-zinc-800,
+[data-theme="plain"] .feed-page .border-zinc-800 {
+  border-color: var(--dark-border) !important;
+}
+
+[data-theme="doodle"] .post-card,
+[data-theme="minimalist"] .post-card,
+[data-theme="plain"] .post-card {
+  color: var(--foreground);
+}
+
 /* === Base theme === */
 body {
   background: var(--background);
