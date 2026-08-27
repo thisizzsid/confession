@@ -13,16 +13,11 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  arrayUnion,
-  arrayRemove,
-  getDoc,
   Firestore,
   onSnapshot,
-  Unsubscribe
 } from "firebase/firestore";
-import { useEffect, useState, useRef } from "react";
-import { MapPin, Send, Ghost, Hash } from "lucide-react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { MapPin, Send, Ghost, Hash, Sparkles, Radio, X } from "lucide-react";
 import TrendingSidebar from "../components/TrendingSidebar";
 import Toast from "../components/Toast";
 import PostCard from "../components/PostCard";
@@ -56,6 +51,9 @@ export default function FeedPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const [feedType, setFeedType] = useState<"local" | "global">("local");
   const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [showUpcoming, setShowUpcoming] = useState(false);
+  const [composerFocused, setComposerFocused] = useState(false);
 
   useEffect(() => {
     const ua = navigator.userAgent;
@@ -68,7 +66,6 @@ export default function FeedPage() {
 
     if (!db) return;
 
-    // Real-time listener
     const oneDayAgo = Timestamp.fromMillis(Date.now() - 24 * 60 * 60 * 1000);
     const q = query(
       collection(db as Firestore, "posts"),
@@ -86,8 +83,10 @@ export default function FeedPage() {
       });
       setPosts(arr);
       loadFollows(arr);
+      setInitialLoad(false);
     }, (err) => {
       console.error("Snapshot error:", err);
+      setInitialLoad(false);
     });
 
     return () => unsubscribe();
@@ -118,17 +117,16 @@ export default function FeedPage() {
 
   const createPost = async () => {
     if (!user || !db || !text.trim()) return;
-    
+
     setLoading(true);
     try {
-      // AI Moderation
       const modRes = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, mode: "moderate" }),
       });
       const modData = await modRes.json();
-      
+
       if (modData.output?.toUpperCase().includes("UNSAFE")) {
         showToast("Your post contains content that violates our community guidelines.", "error");
         setLoading(false);
@@ -144,18 +142,17 @@ export default function FeedPage() {
         anonymous,
         likes: [],
         hashtags,
-            location,
-            latitude: coordinates ? Number(coordinates.latitude.toFixed(3)) : null,
-            longitude: coordinates ? Number(coordinates.longitude.toFixed(3)) : null,
+        location,
+        latitude: coordinates ? Number(coordinates.latitude.toFixed(3)) : null,
+        longitude: coordinates ? Number(coordinates.longitude.toFixed(3)) : null,
         device,
         createdAt: Timestamp.now()
       });
 
-      // Update user's last used device
       await updateDoc(doc(db as Firestore, "users", user.uid), {
         lastDevice: device
       });
-      
+
       setText("");
       setAnonymous(false);
       showToast("Confession released into the void ✨");
@@ -167,20 +164,14 @@ export default function FeedPage() {
     }
   };
 
-  const like = async (p: any) => {
-    // Moved to PostCard
-  };
-
   const followUser = async (uid: string) => {
     if (!user || !db || uid === user.uid) return;
-    
-    // Create follow relationship
+
     await addDoc(collection(db as Firestore, "follows"), {
       follower: user.uid,
       followed: uid,
     });
 
-    // Send notification
     await addDoc(collection(db as Firestore, `users/${uid}/notifications`), {
       type: "follow",
       fromUid: user.uid,
@@ -205,8 +196,6 @@ export default function FeedPage() {
     }
     setFollowMap({ ...followMap, [uid]: false });
   };
-
-  const [showUpcoming, setShowUpcoming] = useState(false);
 
   const detectLocation = () => {
     setDetectingLocation(true);
@@ -239,193 +228,242 @@ export default function FeedPage() {
       if (!coordinates || typeof post.latitude !== "number" || typeof post.longitude !== "number") return false;
       return distanceInKm(coordinates.latitude, coordinates.longitude, post.latitude, post.longitude) <= LOCAL_RADIUS_KM;
     }
-    return true; // Global feed shows everything
+    return true;
   });
+
+  const hashtagCount = extractHashtags(text).length;
+  const charCount = text.length;
+  const charLimit = 500;
 
   if (!user) {
     return (
-      <div className="h-screen bg-black text-yellow-300 flex items-center justify-center">
-        Login Required
+      <div className="h-screen bg-black text-(--gold-primary) flex flex-col items-center justify-center gap-3">
+        <Ghost className="w-10 h-10 opacity-40" />
+        <p className="text-sm tracking-widest uppercase text-zinc-500">Login Required</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] text-(--gold-primary) px-4 md:px-6 pt-[88px] md:pt-24 pb-10">
+    <div className="relative min-h-screen bg-black text-(--gold-primary) px-4 md:px-6 pt-[88px] md:pt-24 pb-10 overflow-hidden">
+
+      {/* AMBIENT BACKGROUND */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-linear-to-b from-black via-[#0A0A0A] to-black" />
+        <div className="absolute top-[-10%] left-[10%] w-[420px] h-[420px] rounded-full bg-(--gold-primary)/[0.06] blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[5%] w-[380px] h-[380px] rounded-full bg-(--gold-primary)/[0.04] blur-[120px]" />
+        <div className="feed-dot-grid absolute inset-0 opacity-[0.025]" />
+      </div>
+
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
-        {/* LEFT COLUMN - FEED */}
+        {/* LEFT COLUMN — FEED */}
         <div className="flex-1 space-y-6 min-w-0">
-        
-        {/* STORIES */}
-        <FadeIn direction="down">
-          <StoryFeature />
-        </FadeIn>
 
-        {/* WELCOME SECTION */}
-        <FadeIn delay={0.1}>
-          <div className="text-center mb-8 relative">
-            <h1 className="text-4xl font-black tracking-tighter bg-linear-to-r from-(--gold-primary) via-(--gold-light) to-(--gold-primary) bg-clip-text text-transparent drop-shadow-lg">
-              Welcome back, {user?.displayName?.split(" ")[0]}!
-            </h1>
+          <FadeIn direction="down">
+            <StoryFeature />
+          </FadeIn>
 
-            <p className="mt-4 text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed font-light tracking-tight">
-              Confession is a quiet place to release thoughts you don't usually say out loud —
-              <span className="text-(--gold-primary) font-medium"> no judgement, just honesty.</span>
-              <span className="block mt-2 text-[10px] uppercase tracking-[0.2em] text-zinc-600 font-bold">Owned by SA Studios · Crafted in USA 🇺🇸</span>
-            </p>
-          </div>
-        </FadeIn>
+          {/* WELCOME */}
+          <FadeIn delay={0.1}>
+            <div className="text-center mb-6 relative">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-zinc-800 bg-zinc-950/60 mb-4">
+                <Radio className="w-3 h-3 text-(--gold-primary) animate-pulse" />
+                <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">
+                  Live · {posts.length} confessions today
+                </span>
+              </div>
 
-        {/* CREATE POST */}
-        <FadeIn delay={0.2}>
-          <HoverScale>
-            <div className="relative group">
-              {/* Subtle Monochrome Glow */}
-              <div className="absolute -inset-0.5 bg-(--gold-primary) rounded-3xl blur-sm opacity-5 group-hover:opacity-10 transition duration-1000"></div>
-              
-              <div className="relative bg-[#0A0A0A] rounded-3xl border border-zinc-800 overflow-hidden">
-                {/* Minimal Header */}
-                <div className="px-6 py-4 border-b border-zinc-800/50 bg-zinc-900/20 flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-mono text-zinc-500 tracking-widest uppercase">New Confession</span>
-                    <span className="text-[10px] text-zinc-600 mt-0.5">Disappears in 24h</span>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tighter bg-linear-to-r from-(--gold-primary) via-(--gold-light) to-(--gold-primary) bg-clip-text text-transparent drop-shadow-lg">
+                Welcome back, {user?.displayName?.split(" ")[0]}
+              </h1>
+
+              <p className="mt-3 text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed font-light tracking-tight">
+                A quiet place to release thoughts you don't usually say out loud —
+                <span className="text-(--gold-primary) font-medium"> no judgement, just honesty.</span>
+              </p>
+              <span className="block mt-3 text-[10px] uppercase tracking-[0.25em] text-zinc-700 font-bold">
+                Owned by SA Studios · Crafted in USA 🇺🇸
+              </span>
+            </div>
+          </FadeIn>
+
+          {/* COMPOSER */}
+          <FadeIn delay={0.2}>
+            <HoverScale>
+              <div className="relative group">
+                <div
+                  className={`absolute -inset-px rounded-3xl blur-md transition-opacity duration-500 ${
+                    composerFocused ? "opacity-30" : "opacity-0"
+                  } bg-linear-to-r from-(--gold-primary)/40 via-(--gold-light)/30 to-(--gold-primary)/40`}
+                />
+
+                <div className="relative bg-[#0A0A0A] rounded-3xl border border-zinc-800 group-hover:border-zinc-700 transition-colors duration-300 overflow-hidden">
+
+                  <div className="px-6 py-4 border-b border-zinc-800/50 bg-linear-to-r from-zinc-900/40 to-transparent flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-(--gold-primary)/10 border border-(--gold-primary)/20 flex items-center justify-center">
+                        <Sparkles className="w-3.5 h-3.5 text-(--gold-primary)" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-mono text-zinc-400 tracking-widest uppercase">New Confession</span>
+                        <span className="text-[10px] text-zinc-600">Disappears in 24h</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
+                    </div>
                   </div>
-                  <div className="flex gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-zinc-800"></div>
-                    <div className="w-2 h-2 rounded-full bg-zinc-800"></div>
+
+                  <div className="p-2">
+                    <label htmlFor="post-textarea" className="sr-only">Post</label>
+                    <textarea
+                      id="post-textarea"
+                      className="w-full bg-transparent text-lg text-zinc-200 placeholder:text-zinc-600 p-4 min-h-36 focus:outline-none resize-none font-medium leading-relaxed tracking-wide selection:bg-(--gold-primary) selection:text-black"
+                      placeholder="What's on your mind?..."
+                      value={text}
+                      maxLength={charLimit}
+                      onFocus={() => setComposerFocused(true)}
+                      onBlur={() => setComposerFocused(false)}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setText(e.target.value)}
+                    />
                   </div>
-                </div>
 
-                {/* Text Area */}
-                <div className="p-2">
-                  <label htmlFor="post-textarea" className="sr-only">Post</label>
-                  <textarea
-                    id="post-textarea"
-                    className="w-full bg-transparent text-lg text-zinc-200 placeholder:text-zinc-600 p-4 min-h-40 focus:outline-none resize-none font-medium leading-relaxed tracking-wide selection:bg-(--gold-primary) selection:text-black"
-                    placeholder="What's on your mind?..."
-                    value={text}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setText(e.target.value)}
-                  />
-                </div>
+                  <div className="px-4 py-3 bg-zinc-900/10 border-t border-zinc-800/50 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                      <button
+                        onClick={() => setAnonymous(!anonymous)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border whitespace-nowrap ${
+                          anonymous
+                            ? "bg-(--gold-primary)/10 text-(--gold-primary) border-(--gold-primary)/30"
+                            : "bg-transparent text-zinc-500 border-transparent hover:bg-zinc-900"
+                        }`}
+                      >
+                        <Ghost className="w-3.5 h-3.5" />
+                        {anonymous ? "Anonymous" : "Public"}
+                      </button>
 
-                {/* Toolbar */}
-                <div className="px-4 py-3 bg-zinc-900/10 border-t border-zinc-800/50 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-                  {/* Tools */}
-                  <div className="flex items-center gap-2 md:gap-4 overflow-x-auto no-scrollbar py-1">
-                    {/* Anonymous Toggle */}
-                    <button
-                      onClick={() => setAnonymous(!anonymous)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border ${
-                        anonymous 
-                          ? "bg-zinc-800 text-(--gold-primary) border-zinc-700" 
-                          : "bg-transparent text-zinc-500 border-transparent hover:bg-zinc-900"
-                      }`}
-                    >
-                      <Ghost className="w-3.5 h-3.5" />
-                      {anonymous ? "Anonymous" : "Public"}
-                    </button>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-zinc-500 text-xs font-medium whitespace-nowrap hover:bg-zinc-900 transition-colors">
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span className="truncate max-w-30" title={location}>
+                          {detectingLocation ? "Locating..." : location}
+                        </span>
+                      </div>
 
-                    {/* Location Badge */}
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-zinc-500 text-xs font-medium whitespace-nowrap hover:bg-zinc-900 transition-colors">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span className="truncate max-w-30" title={location}>
-                        {detectingLocation ? "Locating..." : location}
-                      </span>
+                      {hashtagCount > 0 && (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 text-(--gold-primary) text-xs font-medium whitespace-nowrap">
+                          <Hash className="w-3 h-3" />
+                          <span>{hashtagCount}</span>
+                        </div>
+                      )}
+
+                      {charCount > 0 && (
+                        <span
+                          className={`text-[10px] font-mono whitespace-nowrap ${
+                            charCount > charLimit * 0.9 ? "text-red-400" : "text-zinc-600"
+                          }`}
+                        >
+                          {charCount}/{charLimit}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Hashtag Counter */}
-                    {extractHashtags(text).length > 0 && (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 text-zinc-400 text-xs font-medium">
-                        <Hash className="w-3 h-3" />
-                        <span>{extractHashtags(text).length}</span>
-                      </div>
-                    )}
+                    <button
+                      onClick={createPost}
+                      disabled={!text.trim() || loading}
+                      className="group/btn flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-(--gold-primary) text-black font-bold tracking-tight transition-all duration-300 hover:bg-(--gold-light) hover:shadow-[0_0_20px_rgba(245,194,107,0.35)] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none"
+                    >
+                      <span>{loading ? "Analyzing..." : "Post"}</span>
+                      <Send className={`w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5 ${loading ? "animate-pulse" : ""}`} />
+                    </button>
                   </div>
-
-                  {/* Submit Button */}
-                  <button
-                    onClick={createPost}
-                    disabled={!text.trim() || loading}
-                    className="group flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-(--gold-primary) text-black font-bold tracking-tight transition-all duration-300 hover:bg-(--gold-light) active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span>{loading ? "Analyzing..." : "Post"}</span>
-                    <Send className={`w-3.5 h-3.5 ${loading ? "animate-pulse" : ""}`} />
-                  </button>
                 </div>
               </div>
-            </div>
-          </HoverScale>
-        </FadeIn>
+            </HoverScale>
+          </FadeIn>
 
-        {/* FEED TOGGLE & CONTENT */}
-        <FadeIn delay={0.3}>
-          <div className="flex items-center justify-center gap-4 mb-6">
-          <button
-            onClick={() => setFeedType("local")}
-            className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-              feedType === "local"
-                ? "bg-(--gold-primary) text-black shadow-[0_0_15px_rgba(245,194,107,0.3)]"
-                : "bg-zinc-900 text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            📍 Local · 2 km
-          </button>
-          <button
-            onClick={() => setFeedType("global")}
-            className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-              feedType === "global"
-                ? "bg-(--gold-primary) text-black shadow-[0_0_15px_rgba(245,194,107,0.3)]"
-                : "bg-zinc-900 text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            🌍 Global
-          </button>
-        </div>
-        </FadeIn>
-
-        {/* POSTS LIST */}
-        <div className="space-y-6">
-          {detectingLocation && feedType === "local" ? (
-             <div className="text-center py-20 text-zinc-500 animate-pulse">
-               <MapPin className="w-8 h-8 mx-auto mb-3 text-(--gold-primary) opacity-50" />
-               <p>Triangulating local signals...</p>
-             </div>
-          ) : filteredPosts.length === 0 ? (
-            <div className="text-center py-20 text-zinc-600">
-              <Ghost className="w-12 h-12 mx-auto mb-4 opacity-20" />
-              <p className="text-lg font-medium text-zinc-500">
-                {feedType === "local" 
-                  ? (location && !location.includes("Unknown") && !location.includes("disabled") 
-                      ? `No confessions in ${location} yet.` 
-                      : "Location needed to see local confessions.")
-                  : "The void is silent..."}
-              </p>
-              <p className="text-sm mt-2 opacity-50">Be the first to whisper into the ether.</p>
-            </div>
-          ) : (
-            filteredPosts.map((post, index) => (
-              <FadeIn key={post.id} delay={0.1 * (index % 5)}>
-                <PostCard
-                  post={post}
-                  user={user}
-                  isFollowing={!!followMap[post.uid]}
-                  onFollow={() => followUser(post.uid)}
-                  onUnfollow={() => unfollowUser(post.uid)}
-                  onRefresh={() => {}}
+          {/* FEED TOGGLE — sliding pill */}
+          <FadeIn delay={0.3}>
+            <div className="flex items-center justify-center">
+              <div className="relative inline-flex p-1 rounded-full bg-zinc-950 border border-zinc-800">
+                <div
+                  className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-(--gold-primary) shadow-[0_0_15px_rgba(245,194,107,0.3)] transition-transform duration-300 ease-out"
+                  data-feed-type={feedType}
                 />
-              </FadeIn>
-            ))
-          )}
-        </div>
+                <button
+                  onClick={() => setFeedType("local")}
+                  className={`relative z-10 px-5 py-2 rounded-full text-sm font-bold transition-colors duration-300 ${
+                    feedType === "local" ? "text-black" : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                >
+                  📍 Local · 2 km
+                </button>
+                <button
+                  onClick={() => setFeedType("global")}
+                  className={`relative z-10 px-5 py-2 rounded-full text-sm font-bold transition-colors duration-300 ${
+                    feedType === "global" ? "text-black" : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                >
+                  🌍 Global
+                </button>
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* POSTS LIST */}
+          <div className="space-y-6 pt-2">
+            {initialLoad ? (
+              <div className="space-y-4">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className={`feed-skeleton feed-skeleton-${i} h-32 rounded-2xl border border-zinc-800/60 bg-zinc-950 animate-pulse`}
+                  />
+                ))}
+              </div>
+            ) : detectingLocation && feedType === "local" ? (
+              <div className="text-center py-20 text-zinc-500">
+                <MapPin className="w-8 h-8 mx-auto mb-3 text-(--gold-primary) opacity-50 animate-pulse" />
+                <p>Triangulating local signals...</p>
+              </div>
+            ) : filteredPosts.length === 0 ? (
+              <div className="text-center py-20 text-zinc-600">
+                <Ghost className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p className="text-lg font-medium text-zinc-500">
+                  {feedType === "local"
+                    ? (location && !location.includes("Unknown") && !location.includes("disabled")
+                        ? `No confessions in ${location} yet.`
+                        : "Location needed to see local confessions.")
+                    : "The void is silent..."}
+                </p>
+                <p className="text-sm mt-2 opacity-50">Be the first to whisper into the ether.</p>
+              </div>
+            ) : (
+              filteredPosts.map((post, index) => (
+                <FadeIn key={post.id} delay={0.06 * (index % 6)}>
+                  <PostCard
+                    post={post}
+                    user={user}
+                    isFollowing={!!followMap[post.uid]}
+                    onFollow={() => followUser(post.uid)}
+                    onUnfollow={() => unfollowUser(post.uid)}
+                    onRefresh={() => {}}
+                  />
+                </FadeIn>
+              ))
+            )}
+          </div>
         </div>
 
-        {/* RIGHT COLUMN - TRENDING SIDEBAR */}
+        {/* RIGHT COLUMN */}
         <div className="hidden lg:block w-80 shrink-0">
+          <div className="sticky top-24">
             <TrendingSidebar />
+          </div>
         </div>
       </div>
 
-      {/* TOAST NOTIFICATION */}
       {toast && (
         <Toast
           message={toast.message}
@@ -434,36 +472,51 @@ export default function FeedPage() {
         />
       )}
 
-      {/* === MODAL === */}
       {showUpcoming && (
-        <div className="fixed inset-0 bg-(--dark-base)/90 backdrop-blur-xl flex items-center justify-center z-1000 animate-fadeIn">
-          <div className="glass rounded-3xl p-10 w-[90%] max-w-md text-(--gold-secondary) shadow-2xl border border-(--gold-primary)/20 animate-fadeIn">
-            <h2 className="text-3xl font-black text-transparent bg-linear-to-r from-(--gold-primary) to-(--gold-light) bg-clip-text mb-6 text-center tracking-tight">
-              Upcoming Features
-            </h2>
-
-            <ul className="space-y-3 text-sm leading-relaxed">
-              <li>Private Chat 2.0 (Voice)</li>
-              <li>Anonymous Stories</li>
-              <li>Voice Confessions</li>
-              <li>AI Soulmate Mode</li>
-              <li>Location-based Connections</li>
-              <li>Trending Feed Engine</li>
-              <li>UI Upgrade</li>
-              
-              <li>V.3.1</li>
-            </ul>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-1000 animate-fadeIn px-4">
+          <div className="relative w-full max-w-md rounded-3xl border border-(--gold-primary)/20 bg-[#0A0A0A] shadow-2xl overflow-hidden">
+            <div className="feed-modal-glow absolute inset-0 pointer-events-none" />
 
             <button
               onClick={() => setShowUpcoming(false)}
-              className="modern-btn mt-8 w-full py-3 rounded-xl bg-linear-to-r from-(--gold-primary) to-(--gold-secondary) text-black font-bold hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg shadow-(--gold-primary)/30"
+              aria-label="Close upcoming features"
+              className="absolute top-4 right-4 p-1.5 rounded-full text-zinc-500 hover:text-(--gold-primary) hover:bg-zinc-900 transition-colors"
             >
-              Close
+              <X className="w-4 h-4" />
             </button>
+
+            <div className="relative p-8">
+              <h2 className="text-2xl font-black text-transparent bg-linear-to-r from-(--gold-primary) to-(--gold-light) bg-clip-text mb-6 text-center tracking-tight">
+                Upcoming Features
+              </h2>
+
+              <ul className="space-y-2.5 text-sm leading-relaxed">
+                {[
+                  "TURN relay for reliable calls",
+                  "Voice confessions",
+                  "Smarter notification controls",
+                  "Community spaces",
+                  "Account export and deletion tools",
+                  "More languages and accessibility options",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2.5 text-zinc-300">
+                    <span className="w-1 h-1 rounded-full bg-(--gold-primary)" />
+                    {item}
+                  </li>
+                ))}
+                <li className="pt-2 text-[10px] uppercase tracking-widest text-zinc-600 font-bold">V.3.1</li>
+              </ul>
+
+              <button
+                onClick={() => setShowUpcoming(false)}
+                className="mt-8 w-full py-3 rounded-xl bg-linear-to-r from-(--gold-primary) to-(--gold-light) text-black font-bold hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-lg shadow-(--gold-primary)/20"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
-

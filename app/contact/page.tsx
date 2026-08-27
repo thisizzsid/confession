@@ -34,7 +34,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-linear-to-br from-[#0A0A0A] via-black to-[#0A0A0A] text-white flex flex-col font-sans">
+    <div className="info-page relative min-h-screen bg-(--background) text-white flex flex-col font-sans">
       <GlowBackground />
       
       {/* Header */}

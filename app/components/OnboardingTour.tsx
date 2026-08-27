@@ -96,10 +96,7 @@ export default function OnboardingTour() {
         
         {/* Progress Bar */}
         <div className="h-1 bg-zinc-800 w-full">
-          <div 
-            className="h-full bg-(--gold-primary) transition-all duration-500 ease-out"
-            style={{ width: `${((step + 1) / steps.length) * 100}%` }}
-          />
+          <div className={`h-full bg-(--gold-primary) transition-all duration-500 ease-out onboarding-progress-${step + 1}`} />
         </div>
 
         {/* Close Button */}
