@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, Bell, Send, Lock, Image as ImageIcon, Link as LinkIcon, LogOut, Users, Search, Ban, ShieldCheck } from "lucide-react";
+import { collection, Firestore, limit, onSnapshot, orderBy, query } from "firebase/firestore";
+import { Shield, Bell, Send, Lock, Image as ImageIcon, Link as LinkIcon, LogOut, Users, Search, Ban, ShieldCheck, MapPinned } from "lucide-react";
+import { db } from "../../firebase";
 import Toast from "../components/Toast";
+import { normalizeGeoPoint } from "../lib/utils";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,6 +17,7 @@ export default function AdminPage() {
   const [userSearch, setUserSearch] = useState("");
   const [managedUsers, setManagedUsers] = useState<any[]>([]);
   const [userAction, setUserAction] = useState<string | null>(null);
+  const [geoPosts, setGeoPosts] = useState<any[]>([]);
 
   const [campaign, setCampaign] = useState({
     title: "",
@@ -44,6 +48,27 @@ export default function AdminPage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [isAuthenticated, userSearch]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !db) {
+      setGeoPosts([]);
+      return;
+    }
+
+    const q = query(collection(db as Firestore, "posts"), orderBy("createdAt", "desc"), limit(60));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const nextPosts: any[] = snapshot.docs
+          .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+          .filter((post: any) => typeof post.latitude === "number" && typeof post.longitude === "number");
+        setGeoPosts(nextPosts.slice(0, 18));
+      },
+      () => setGeoPosts([])
+    );
+
+    return () => unsubscribe();
+  }, [isAuthenticated]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -214,6 +239,47 @@ export default function AdminPage() {
               </div>
             ))}
           </div>}
+        </section>
+
+        <section className="glass-card rounded-3xl border border-(--glass-border) bg-(--glass-bg) p-6 md:p-8">
+          <div className="mb-5 flex items-center gap-3 border-b border-white/10 pb-5">
+            <MapPinned className="h-5 w-5 text-(--gold-primary)" />
+            <div>
+              <h2 className="font-semibold text-white">Live map</h2>
+              <p className="text-sm text-zinc-500">Recent geotagged posts from the platform.</p>
+            </div>
+          </div>
+
+          {geoPosts.length === 0 ? (
+            <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-black/20 text-sm text-zinc-400">
+              No geotagged posts yet.
+            </div>
+          ) : (
+            <div className="relative h-72 overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(212,175,55,0.18),_transparent_35%),linear-gradient(135deg,#101010,#1b1b1b)]">
+              <svg viewBox="0 0 100 100" className="h-full w-full">
+                <g opacity="0.2" stroke="rgba(255,255,255,0.35)" strokeWidth="0.2">
+                  {[...Array(11)].map((_, index) => (
+                    <line key={`v-${index}`} x1={index * 10} y1="0" x2={index * 10} y2="100" />
+                  ))}
+                  {[...Array(11)].map((_, index) => (
+                    <line key={`h-${index}`} x1="0" y1={index * 10} x2="100" y2={index * 10} />
+                  ))}
+                </g>
+                {geoPosts.map((post) => {
+                  const point = normalizeGeoPoint(post.latitude, post.longitude);
+                  return (
+                    <g key={post.id}>
+                      <circle cx={point.x} cy={point.y} r="2.2" fill="rgba(212,175,55,0.35)" />
+                      <circle cx={point.x} cy={point.y} r="1.1" fill="#f5d76e" />
+                    </g>
+                  );
+                })}
+              </svg>
+              <div className="absolute bottom-3 left-3 rounded-full border border-(--gold-primary)/30 bg-black/40 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-(--gold-primary)">
+                {geoPosts.length} active markers
+              </div>
+            </div>
+          )}
         </section>
 
         <div className="glass-card rounded-3xl border border-(--glass-border) bg-(--glass-bg) p-6 md:p-8">

@@ -10,6 +10,16 @@ export const extractHashtags = (text: string): string[] => {
   return text.match(hashtagRegex) || [];
 };
 
+export const normalizeGeoPoint = (latitude: number, longitude: number) => {
+  const clampedLatitude = Math.min(90, Math.max(-90, Number(latitude) || 0));
+  const clampedLongitude = Math.min(180, Math.max(-180, Number(longitude) || 0));
+
+  return {
+    x: ((clampedLongitude + 180) / 360) * 100,
+    y: 100 - ((clampedLatitude + 90) / 180) * 100,
+  };
+};
+
 export const getDeviceName = (): string => {
   if (typeof window === "undefined") return "Unknown";
   const ua = window.navigator.userAgent;
