@@ -19,7 +19,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext<any>(null);
 let recaptcha: RecaptchaVerifier | null = null;
-const ANONYMOUS_SESSION_PAUSED = "confession-anonymous-session-paused";
 
 const restoreViewportAfterSessionChange = async () => {
   if (typeof document === "undefined") return;
@@ -39,26 +38,6 @@ const restoreViewportAfterSessionChange = async () => {
 export const AuthContextProvider = ({ children }: any) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const isAnonymousSessionPaused = () => {
-    try {
-      return window.localStorage.getItem(ANONYMOUS_SESSION_PAUSED) === "true";
-    } catch {
-      return false;
-    }
-  };
-
-  const clearAnonymousSessionPause = () => {
-    try {
-      window.localStorage.removeItem(ANONYMOUS_SESSION_PAUSED);
-    } catch {}
-  };
-
-  const pauseAnonymousSession = () => {
-    try {
-      window.localStorage.setItem(ANONYMOUS_SESSION_PAUSED, "true");
-    } catch {}
-  };
 
   /** Ensure Firestore profile exists **/
   const ensureUserProfile = async (u: any) => {
@@ -110,7 +89,6 @@ export const AuthContextProvider = ({ children }: any) => {
     if (!auth || !db) return;
     const current = auth.currentUser;
     const res = current?.isAnonymous ? { user: current } : await signInAnonymously(auth);
-    clearAnonymousSessionPause();
     await ensureUserProfile(res.user);
     const ref = doc(db as Firestore, "users", res.user.uid);
     const snap = await getDoc(ref);
@@ -120,7 +98,6 @@ export const AuthContextProvider = ({ children }: any) => {
   /** Google Auth **/
   const googleLogin = async () => {
     if (!auth) return;
-    clearAnonymousSessionPause();
     const provider = new GoogleAuthProvider();
     const res = await signInWithPopup(auth, provider);
     await ensureUserProfile(res.user);
@@ -129,7 +106,6 @@ export const AuthContextProvider = ({ children }: any) => {
   /** Email Signup **/
   const signupWithEmail = async (email: string, password: string) => {
     if (!auth) return;
-    clearAnonymousSessionPause();
     const res = await createUserWithEmailAndPassword(auth, email, password);
     await ensureUserProfile(res.user);
   };
@@ -137,7 +113,6 @@ export const AuthContextProvider = ({ children }: any) => {
   /** Email Login **/
   const loginWithEmail = async (email: string, password: string) => {
     if (!auth) return;
-    clearAnonymousSessionPause();
     const res = await signInWithEmailAndPassword(auth, email, password);
     await ensureUserProfile(res.user);
   };
@@ -179,11 +154,6 @@ export const AuthContextProvider = ({ children }: any) => {
   const logout = async () => {
     if (!auth) return;
     await restoreViewportAfterSessionChange();
-    if (auth.currentUser?.isAnonymous) {
-      pauseAnonymousSession();
-      setUser(null);
-      return;
-    }
     return signOut(auth);
   };
 
@@ -195,12 +165,6 @@ export const AuthContextProvider = ({ children }: any) => {
     }
     const unsub = onAuthStateChanged(auth, async (current) => {
       if (!current) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-
-      if (current.isAnonymous && isAnonymousSessionPaused()) {
         setUser(null);
         setLoading(false);
         return;
