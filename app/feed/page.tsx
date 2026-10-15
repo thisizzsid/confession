@@ -255,9 +255,9 @@ export default function FeedPage() {
         <div className="feed-dot-grid absolute inset-0 opacity-[0.025]" />
       </div>
 
-      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+      <div className="feed-layout max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
         {/* LEFT COLUMN — FEED */}
-        <div className="flex-1 space-y-6 min-w-0">
+        <div className="feed-main flex-1 space-y-6 min-w-0">
 
           <FadeIn direction="down">
             <StoryFeature />
@@ -265,7 +265,7 @@ export default function FeedPage() {
 
           {/* WELCOME */}
           <FadeIn delay={0.1}>
-            <div className="text-center mb-6 relative">
+            <div className="feed-welcome text-center mb-6 relative">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-zinc-800 bg-zinc-950/60 mb-4">
                 <Radio className="w-3 h-3 text-(--gold-primary) animate-pulse" />
                 <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">
@@ -290,7 +290,7 @@ export default function FeedPage() {
           {/* COMPOSER */}
           <FadeIn delay={0.2}>
             <HoverScale>
-              <div className="relative group">
+              <div className="feed-composer relative group">
                 <div
                   className={`absolute -inset-px rounded-3xl blur-md transition-opacity duration-500 ${
                     composerFocused ? "opacity-30" : "opacity-0"

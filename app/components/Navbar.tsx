@@ -141,9 +141,9 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 w-full z-50">
+      <header className="app-header fixed top-0 w-full z-50">
         <div className="absolute inset-0 h-[200%] bg-[radial-gradient(ellipse_at_top,_color-mix(in_srgb,var(--gold-primary),transparent_88%),_transparent_60%)] pointer-events-none"></div>
-        <div className="relative h-[72px] md:h-20 glass border-b border-white/5 flex items-center px-3 md:px-8">
+        <div className="app-header__bar relative h-[72px] md:h-20 glass border-b border-white/5 flex items-center px-3 md:px-8">
           <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-linear-to-r from-transparent via-(--gold-primary)/40 to-transparent"></div>
 
           {/* Left Section: Menu (mobile) + Branding */}
@@ -261,7 +261,7 @@ export default function Navbar() {
 
       {/* SIDEBAR - Responsive (Mobile Slide-out, Desktop Fixed) */}
       <aside
-        className={`fixed left-0 top-[72px] md:top-20 w-64 h-[calc(100vh-72px)] md:h-[calc(100vh-80px)] bg-black/40 backdrop-blur-xl border-r border-(--gold-primary)/15 transition-transform duration-300 z-40 flex flex-col overflow-y-auto ${
+        className={`app-sidebar fixed left-0 top-[72px] md:top-20 w-64 h-[calc(100vh-72px)] md:h-[calc(100vh-80px)] bg-black/40 backdrop-blur-xl border-r border-(--gold-primary)/15 transition-transform duration-300 z-40 flex flex-col overflow-y-auto ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
         onMouseEnter={handleSidebarInteraction}

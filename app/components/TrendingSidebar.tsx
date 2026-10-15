@@ -65,7 +65,7 @@ export default function TrendingSidebar() {
 
   return (
     <div className="hidden lg:block w-80 pl-6 sticky top-24 self-start">
-      <div className="glass rounded-2xl p-6 border border-(--gold-primary)/20 shadow-xl shadow-(--gold-primary)/5">
+      <div className="trending-panel glass rounded-2xl p-6 border border-(--gold-primary)/20 shadow-xl shadow-(--gold-primary)/5">
         <h3 className="text-xl font-bold text-(--gold-primary) mb-4 flex items-center gap-2">
           <TrendingUp className="w-5 h-5" /> Trending
         </h3>

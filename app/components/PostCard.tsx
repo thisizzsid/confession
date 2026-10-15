@@ -131,6 +131,7 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
       if (!shareOpen) return;
       if (e.key === "Escape") {
         setShareOpen(false);
+        shareBtnRef.current?.focus();
       }
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
@@ -517,6 +518,9 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
                     <button
                         type="button"
                         onClick={() => setShareOpen((v) => !v)}
+                        aria-expanded={shareOpen}
+                        aria-haspopup="menu"
+                        aria-controls={`share-options-${post.id}`}
                         className="w-full sm:w-auto h-11 px-4 rounded-lg bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-(--gold-primary) transition-all flex items-center justify-center gap-2 text-xs font-medium group/share"
                         ref={shareBtnRef}
                     >
@@ -524,38 +528,44 @@ export default function PostCard({ post, user, isFollowing, onFollow, onUnfollow
                         <span>Share</span>
                     </button>
                     
-                    {shareOpen && (
-                        <div
-                            ref={shareMenuRef}
-                            className="absolute bottom-full right-0 mb-2 w-48 bg-[#0F0F0F] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-30 animate-fadeIn"
-                        >
-                            <button onClick={() => handleShare("instagramStory")} className="w-full px-4 py-3 text-left text-xs text-zinc-300 hover:bg-white/5 hover:text-white transition-colors border-b border-white/5 flex items-center gap-2">
-                              <Image src="/instagram.svg" width={14} height={14} alt="IG" className="opacity-70" />
-                              Instagram Story
-                            </button>
-                            <button onClick={() => handleShare("whatsapp")} className="w-full px-4 py-3 text-left text-xs text-zinc-300 hover:bg-white/5 hover:text-white transition-colors border-b border-white/5 flex items-center gap-2">
-                              <Image src="/whatsapp.svg" width={14} height={14} alt="WA" className="opacity-70" />
-                              WhatsApp
-                            </button>
-                            <button 
-                              onClick={() => {
-                                navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`);
-                                setShareOpen(false);
-                                alert("Link copied to clipboard!");
-                              }} 
-                              className="w-full px-4 py-3 text-left text-xs text-zinc-300 hover:bg-white/5 hover:text-white transition-colors border-b border-white/5 flex items-center gap-2"
-                            >
-                              <Copy className="w-3.5 h-3.5 opacity-70" />
-                              Copy Link
-                            </button>
-                            <button onClick={() => handleShare("generic")} className="w-full px-4 py-3 text-left text-xs text-zinc-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
-                              <Share2 className="w-3.5 h-3.5 opacity-70" />
-                              Download Image
-                            </button>
-                        </div>
-                    )}
                 </div>
             </div>
+
+            {shareOpen && (
+                <div
+                    ref={shareMenuRef}
+                    id={`share-options-${post.id}`}
+                    role="menu"
+                    aria-label="Share this confession"
+                    className="post-share-panel mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fadeIn"
+                >
+                    <button type="button" role="menuitem" data-menuitem="true" onClick={() => handleShare("instagramStory")}>
+                      <Image src="/instagram.svg" width={16} height={16} alt="" aria-hidden="true" />
+                      Instagram Story
+                    </button>
+                    <button type="button" role="menuitem" data-menuitem="true" onClick={() => handleShare("whatsapp")}>
+                      <Image src="/whatsapp.svg" width={16} height={16} alt="" aria-hidden="true" />
+                      WhatsApp
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      data-menuitem="true"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`);
+                        setShareOpen(false);
+                        alert("Link copied to clipboard!");
+                      }}
+                    >
+                      <Copy className="w-4 h-4" aria-hidden="true" />
+                      Copy Link
+                    </button>
+                    <button type="button" role="menuitem" data-menuitem="true" onClick={() => handleShare("generic")}>
+                      <Share2 className="w-4 h-4" aria-hidden="true" />
+                      Download Image
+                    </button>
+                </div>
+            )}
 
             {showComments && (
                 <div className="mt-4 pt-4 border-t border-(--gold-primary)/10 animate-fadeIn">

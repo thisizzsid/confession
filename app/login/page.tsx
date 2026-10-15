@@ -24,23 +24,13 @@ const itemVariants = {
   visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } }
 };
 
-function AnimatedLogo() {
+function AuthLogo() {
   return (
-    <div className="loader" aria-label="Confession logo" role="img">
-      <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
-        <defs>
-          <mask id="clipping">
-            <polygon points="0,0 100,0 100,100 0,100" fill="black" />
-            <polygon points="25,25 75,25 50,75" fill="white" />
-            <polygon points="50,25 75,75 25,75" fill="white" />
-            <polygon points="35,35 65,35 50,65" fill="white" />
-            <polygon points="35,35 65,35 50,65" fill="white" />
-            <polygon points="35,35 65,35 50,65" fill="white" />
-            <polygon points="35,35 65,35 50,65" fill="white" />
-          </mask>
-        </defs>
-      </svg>
-      <div className="box" />
+    <div className="auth-logo-wordmark">
+      <span className="auth-logo-mark">
+        <MessageSquare className="h-5 w-5" strokeWidth={2.4} aria-hidden="true" />
+      </span>
+      <span>Confession</span>
     </div>
   );
 }
@@ -220,30 +210,30 @@ function LoginContent() {
    };
 
   return (
-    <div className="min-h-dvh w-full relative flex items-center justify-center bg-(--background) selection:bg-(--gold-primary) selection:text-black overflow-hidden">
+    <div className="auth-page min-h-dvh w-full relative flex items-center justify-center bg-(--background) selection:bg-(--gold-primary) selection:text-black overflow-hidden">
       <LoadingOverlay isLoading={loading} />
       
       {/* Background Elements */}
       <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
-      <div className="absolute inset-0 bg-linear-to-br from-black/90 via-black/70 to-black/90 z-0" />
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,color-mix(in_srgb,var(--gold-primary),transparent_98%),transparent_80%)] pointer-events-none" />
+      <div className="auth-backdrop absolute inset-0 bg-linear-to-br from-black/90 via-black/70 to-black/90 z-0" />
+      <div className="auth-glow absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,color-mix(in_srgb,var(--gold-primary),transparent_98%),transparent_80%)] pointer-events-none" />
       
-      <div className="flex w-full max-w-6xl min-h-[calc(100dvh-2rem)] lg:min-h-[85vh] m-2 sm:m-4 md:m-10 relative z-10 glass-card rounded-3xl lg:rounded-[40px] border border-white/5 shadow-2xl overflow-hidden backdrop-blur-3xl">
+      <div className="auth-shell flex w-full max-w-6xl min-h-[calc(100dvh-2rem)] lg:min-h-[85vh] m-2 sm:m-4 md:m-10 relative z-10 glass-card rounded-3xl lg:rounded-[40px] border border-white/5 shadow-2xl overflow-hidden backdrop-blur-3xl">
         
         {/* Left Side: Branding (Desktop Only) */}
         <motion.div 
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="hidden lg:flex flex-1 relative flex-col justify-between p-12 xl:p-16 overflow-hidden border-r border-white/5"
+          className="auth-brand-panel hidden lg:flex flex-1 relative flex-col justify-between p-12 xl:p-16 overflow-hidden border-r border-white/5"
         >
           {/* Animated Gradient Background */}
           <div className="absolute inset-0 bg-linear-to-br from-(--gold-primary)/5 via-transparent to-transparent animate-pulse" />
           
           <div className="relative z-10">
             <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="auth-logo-shell group-hover:scale-110">
-                <AnimatedLogo />
+              <div className="auth-logo-shell group-hover:scale-[1.02]">
+                <AuthLogo />
               </div>
             </Link>
 
@@ -255,7 +245,7 @@ function LoginContent() {
                 className="text-6xl font-black leading-tight text-white tracking-tight"
               >
                 Release your <br />
-                <span className="text-(--gold-primary) italic">thoughts</span> <br />
+                <span className="auth-accent text-(--gold-primary) italic">thoughts</span> <br />
                 into the void.
               </motion.h2>
               
@@ -273,7 +263,7 @@ function LoginContent() {
                     className="flex items-start gap-4"
                   >
                     <div className="w-10 h-10 rounded-xl bg-(--gold-primary)/10 border border-(--gold-primary)/20 flex items-center justify-center shrink-0">
-                      <item.icon className="w-5 h-5 text-(--gold-primary)" />
+                      <item.icon className="auth-accent w-5 h-5 text-(--gold-primary)" />
                     </div>
                     <div>
                       <h4 className="text-white font-bold">{item.title}</h4>
@@ -287,7 +277,7 @@ function LoginContent() {
 
           <div className="relative z-10">
             <div className="flex items-center gap-4 text-zinc-500 text-sm">
-              <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-(--gold-primary)" /> 50k+ Users</span>
+              <span className="flex items-center gap-1.5"><Sparkles className="auth-accent w-3.5 h-3.5 text-(--gold-primary)" /> 50k+ Users</span>
               <span className="w-1 h-1 rounded-full bg-zinc-800" />
               <span>Built with TRAE AI</span>
             </div>
@@ -299,16 +289,14 @@ function LoginContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
-          className="w-full lg:w-120 flex flex-col p-5 sm:p-8 md:p-12 bg-black/40"
+          className="auth-form-panel w-full lg:w-120 flex flex-col p-5 sm:p-8 md:p-12 bg-black/40"
         >
           {/* Mobile Logo */}
-          <div className="lg:hidden flex justify-center mb-6 sm:mb-10">
-            <div className="auth-logo-shell auth-logo-shell-mobile">
-              <AnimatedLogo />
-            </div>
+          <div className="auth-mobile-brand lg:hidden flex justify-center mb-6 sm:mb-10">
+            <AuthLogo />
           </div>
 
-          <div className="mb-8">
+          <div className="auth-heading mb-8">
             <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2">
               {mode === 'login' ? 'Welcome Back' : 'Create Account'}
             </h3>
@@ -318,7 +306,7 @@ function LoginContent() {
           </div>
 
           {/* Mode Toggle */}
-          <div className="flex p-1 bg-white/5 rounded-2xl mb-8 relative border border-white/5">
+          <div className="auth-mode-toggle flex p-1 bg-white/5 rounded-2xl mb-8 relative border border-white/5">
             <motion.div 
               layoutId="toggle"
               className="absolute inset-y-1 w-[calc(50%-4px)] bg-(--gold-primary) rounded-xl shadow-lg"
@@ -369,7 +357,7 @@ function LoginContent() {
                       placeholder="Username"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/5 text-white placeholder:text-zinc-600 focus:border-(--gold-primary)/30 focus:ring-1 focus:ring-(--gold-primary)/20 outline-none transition-all"
+                      className="auth-field w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/5 text-white placeholder:text-zinc-600 focus:border-(--gold-primary)/30 focus:ring-1 focus:ring-(--gold-primary)/20 outline-none transition-all"
                       required
                     />
                   </div>
@@ -382,7 +370,7 @@ function LoginContent() {
                     placeholder="Email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/5 text-white placeholder:text-zinc-600 focus:border-(--gold-primary)/30 focus:ring-1 focus:ring-(--gold-primary)/20 outline-none transition-all"
+                    className="auth-field w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/5 text-white placeholder:text-zinc-600 focus:border-(--gold-primary)/30 focus:ring-1 focus:ring-(--gold-primary)/20 outline-none transition-all"
                     required
                   />
                 </div>
@@ -394,7 +382,7 @@ function LoginContent() {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-12 py-4 rounded-2xl bg-white/5 border border-white/5 text-white placeholder:text-zinc-600 focus:border-(--gold-primary)/30 focus:ring-1 focus:ring-(--gold-primary)/20 outline-none transition-all"
+                    className="auth-field w-full pl-12 pr-12 py-4 rounded-2xl bg-white/5 border border-white/5 text-white placeholder:text-zinc-600 focus:border-(--gold-primary)/30 focus:ring-1 focus:ring-(--gold-primary)/20 outline-none transition-all"
                     required
                   />
                   <button 
@@ -414,7 +402,7 @@ function LoginContent() {
                       placeholder="Confirm Password"
                       value={confirm}
                       onChange={(e) => setConfirm(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/5 text-white placeholder:text-zinc-600 focus:border-(--gold-primary)/30 focus:ring-1 focus:ring-(--gold-primary)/20 outline-none transition-all"
+                      className="auth-field w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/5 text-white placeholder:text-zinc-600 focus:border-(--gold-primary)/30 focus:ring-1 focus:ring-(--gold-primary)/20 outline-none transition-all"
                       required
                     />
                   </div>
@@ -422,7 +410,7 @@ function LoginContent() {
 
                 {mode === 'login' && (
                   <div className="flex justify-end">
-                    <button type="button" onClick={handleReset} className="text-xs font-bold text-zinc-500 hover:text-(--gold-primary) transition-colors">
+                    <button type="button" onClick={handleReset} className="auth-link text-xs font-bold text-zinc-500 hover:text-(--gold-primary) transition-colors">
                       Forgot password?
                     </button>
                   </div>
@@ -431,7 +419,7 @@ function LoginContent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 rounded-2xl bg-linear-to-r from-(--gold-primary) to-(--gold-light) text-black font-black text-sm hover:shadow-[0_0_30px_color-mix(in_srgb,var(--gold-primary),transparent_80%)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group/btn mt-4"
+                  className="auth-submit w-full py-4 rounded-2xl bg-linear-to-r from-(--gold-primary) to-(--gold-light) text-black font-black text-sm hover:shadow-[0_0_30px_color-mix(in_srgb,var(--gold-primary),transparent_80%)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group/btn mt-4"
                 >
                   <span>{loading ? "PROCESSING..." : mode === 'login' ? "SIGN IN" : "CREATE ACCOUNT"}</span>
                   <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
@@ -444,7 +432,7 @@ function LoginContent() {
                 <div className="flex-1 h-px bg-white/5" />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="auth-social grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
@@ -473,7 +461,7 @@ function LoginContent() {
                   {mode === 'login' ? "New here? " : "Already joined? "}
                   <button 
                     onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                    className="text-(--gold-primary) hover:underline underline-offset-4"
+                    className="auth-link text-(--gold-primary) hover:underline underline-offset-4"
                   >
                     {mode === 'login' ? "CREATE ACCOUNT" : "SIGN IN"}
                   </button>

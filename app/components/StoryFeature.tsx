@@ -218,8 +218,8 @@ export default function StoryFeature() {
   }, [activeStoryIndex, durations, nextStory, paused]);
 
   return (
-    <div className="w-full py-4 px-2 overflow-x-auto no-scrollbar scroll-smooth">
-      <div className="flex items-center gap-4 px-2">
+    <div className="story-strip w-full py-4 px-2 overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="story-strip__items flex items-center gap-4 px-2">
         {/* Create Story Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
